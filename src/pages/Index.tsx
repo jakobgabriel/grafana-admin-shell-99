@@ -1,12 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Settings, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AdminPanel from "@/components/AdminPanel";
-import TagFilter from "@/components/TagFilter";
-import WelcomeSection from "@/components/WelcomeSection";
-import DemoInstances from "@/components/DemoInstances";
+import Header from "@/components/Header";
+import SearchBar from "@/components/SearchBar";
+import InstancesSection from "@/components/InstancesSection";
 import { fetchGrafanaData } from "@/utils/grafanaApi";
 
 interface GrafanaInstanceFormData {
@@ -112,7 +109,6 @@ const Index = () => {
     if (savedInstances) {
       const parsedInstances = JSON.parse(savedInstances);
       setInstances(parsedInstances);
-      // Fetch data for each saved instance
       parsedInstances.forEach(async (instance: GrafanaInstance) => {
         const data = await fetchGrafanaData(instance);
         if (data) {
@@ -165,7 +161,6 @@ const Index = () => {
   const handleAddInstance = async (instance: GrafanaInstanceFormData) => {
     console.log("Adding new instance:", instance);
     
-    // First fetch data from the Grafana instance to verify connection
     const data = await fetchGrafanaData(instance);
     
     if (data) {
@@ -189,73 +184,29 @@ const Index = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-grafana-text">Grafana Dashboard Explorer</h1>
-        <Button
-          variant="outline"
-          onClick={() => setIsAdminPanelOpen(true)}
-          className="flex items-center gap-2"
-        >
-          <Settings className="w-4 h-4" />
-          Admin Panel
-        </Button>
-      </div>
-
+      <Header onOpenAdminPanel={() => setIsAdminPanelOpen(true)} />
+      
       <div className="mb-6">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
-          <Input
-            type="text"
-            placeholder="Search dashboards..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
+        <SearchBar 
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+        />
       </div>
 
-      {instances.length === 0 ? (
-        <div className="grid gap-6">
-          <WelcomeSection onOpenAdminPanel={() => setIsAdminPanelOpen(true)} />
-          <div className="grid gap-6">
-            <h3 className="text-lg font-semibold">Demo View</h3>
-            <div className="grid md:grid-cols-[250px,1fr] gap-6">
-              <TagFilter
-                tags={allTags}
-                selectedTags={selectedTags}
-                onTagSelect={handleTagSelect}
-              />
-              <DemoInstances
-                instances={demoInstances}
-                searchQuery={searchQuery}
-                selectedTags={selectedTags}
-                expandedFolders={expandedFolders}
-                expandedInstances={expandedInstances}
-                onFolderToggle={toggleFolder}
-                onInstanceToggle={toggleInstance}
-              />
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="grid md:grid-cols-[250px,1fr] gap-6">
-          <TagFilter
-            tags={allTags}
-            selectedTags={selectedTags}
-            onTagSelect={handleTagSelect}
-          />
-          <DemoInstances
-            instances={instances}
-            searchQuery={searchQuery}
-            selectedTags={selectedTags}
-            expandedFolders={expandedFolders}
-            expandedInstances={expandedInstances}
-            onFolderToggle={toggleFolder}
-            onInstanceToggle={toggleInstance}
-            onRemoveInstance={handleRemoveInstance}
-          />
-        </div>
-      )}
+      <InstancesSection
+        instances={instances}
+        demoInstances={demoInstances}
+        searchQuery={searchQuery}
+        selectedTags={selectedTags}
+        expandedFolders={expandedFolders}
+        expandedInstances={expandedInstances}
+        allTags={allTags}
+        onTagSelect={handleTagSelect}
+        onFolderToggle={toggleFolder}
+        onInstanceToggle={toggleInstance}
+        onRemoveInstance={handleRemoveInstance}
+        onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
+      />
 
       <AdminPanel
         isOpen={isAdminPanelOpen}
