@@ -23,6 +23,8 @@ interface Props {
 }
 
 const DashboardCard = ({ dashboard }: Props) => {
+  console.log('Rendering dashboard card for:', dashboard.title);
+  
   return (
     <Card className="bg-grafana-card text-grafana-text hover:shadow-lg transition-shadow max-w-2xl">
       <CardHeader>
@@ -37,9 +39,9 @@ const DashboardCard = ({ dashboard }: Props) => {
               </DialogTrigger>
               <DialogContent className="max-w-3xl max-h-[80vh] overflow-auto">
                 <DialogHeader>
-                  <DialogTitle>{dashboard.title} - JSON</DialogTitle>
+                  <DialogTitle>{dashboard.title} - Configuration</DialogTitle>
                 </DialogHeader>
-                <pre className="bg-grafana-background p-4 rounded-lg overflow-auto">
+                <pre className="bg-grafana-background p-4 rounded-lg overflow-auto whitespace-pre-wrap">
                   {JSON.stringify(dashboard, null, 2)}
                 </pre>
               </DialogContent>
