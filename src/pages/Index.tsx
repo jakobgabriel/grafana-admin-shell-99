@@ -1,43 +1,66 @@
 import React, { useState } from 'react';
 import GrafanaInstanceCard from '@/components/GrafanaInstanceCard';
 import DashboardCard from '@/components/DashboardCard';
-import TagFilter from '@/components/TagFilter';
+import SearchableTagFilter from '@/components/SearchableTagFilter';
 
 // Mock data - replace with actual API calls
 const mockInstances = [
   {
     name: "Production",
     url: "https://grafana.prod.example.com",
-    folders: 12,
-    dashboards: 45,
+    folders: [
+      {
+        name: "System Monitoring",
+        dashboards: [
+          {
+            title: "System Overview",
+            description: "Key system metrics and health indicators",
+            url: "https://grafana.prod.example.com/d/abc123",
+            tags: ["system", "monitoring", "overview"],
+          },
+        ],
+      },
+      {
+        name: "Application Metrics",
+        dashboards: [
+          {
+            title: "Application Performance",
+            description: "Application performance metrics and traces",
+            url: "https://grafana.prod.example.com/d/def456",
+            tags: ["application", "performance", "apm"],
+          },
+        ],
+      },
+    ],
+    totalFolders: 12,
+    totalDashboards: 45,
   },
   {
     name: "Staging",
     url: "https://grafana.staging.example.com",
-    folders: 8,
-    dashboards: 32,
+    folders: [
+      {
+        name: "Testing",
+        dashboards: [
+          {
+            title: "Test Coverage",
+            description: "Test coverage and quality metrics",
+            url: "https://grafana.staging.example.com/d/test123",
+            tags: ["testing", "quality", "coverage"],
+          },
+        ],
+      },
+    ],
+    totalFolders: 8,
+    totalDashboards: 32,
   },
 ];
 
-const mockDashboards = [
-  {
-    title: "System Overview",
-    description: "Key system metrics and health indicators",
-    url: "https://grafana.prod.example.com/d/abc123",
-    tags: ["system", "monitoring", "overview"],
-  },
-  {
-    title: "Application Performance",
-    description: "Application performance metrics and traces",
-    url: "https://grafana.prod.example.com/d/def456",
-    tags: ["application", "performance", "apm"],
-  },
-];
-
-const mockTags = ["system", "monitoring", "overview", "application", "performance", "apm"];
+const mockTags = ["system", "monitoring", "overview", "application", "performance", "apm", "testing", "quality", "coverage"];
 
 const Index = () => {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [expandedInstances, setExpandedInstances] = useState<string[]>([]);
 
   const handleTagSelect = (tag: string) => {
     setSelectedTags(prev => 
@@ -47,42 +70,74 @@ const Index = () => {
     );
   };
 
-  const filteredDashboards = selectedTags.length > 0
-    ? mockDashboards.filter(dashboard => 
-        dashboard.tags.some(tag => selectedTags.includes(tag))
-      )
-    : mockDashboards;
+  const toggleInstance = (instanceName: string) => {
+    setExpandedInstances(prev =>
+      prev.includes(instanceName)
+        ? prev.filter(name => name !== instanceName)
+        : [...prev, instanceName]
+    );
+  };
+
+  const isInstanceExpanded = (instanceName: string) => expandedInstances.includes(instanceName);
+
+  const shouldShowDashboard = (dashboard: { tags: string[] }) => {
+    if (selectedTags.length === 0) return true;
+    return dashboard.tags.some(tag => selectedTags.includes(tag));
+  };
 
   return (
     <div className="min-h-screen bg-grafana-background text-grafana-text p-6">
       <h1 className="text-3xl font-bold mb-8">Grafana Overview</h1>
       
-      <section className="mb-8">
-        <h2 className="text-xl font-semibold mb-4">Instances</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {mockInstances.map((instance, index) => (
-            <GrafanaInstanceCard key={index} instance={instance} />
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="lg:col-span-1">
+          <div className="sticky top-6">
+            <h2 className="text-xl font-semibold mb-4">Filter by Tags</h2>
+            <SearchableTagFilter 
+              tags={mockTags}
+              selectedTags={selectedTags}
+              onTagSelect={handleTagSelect}
+            />
+          </div>
+        </div>
+
+        <div className="lg:col-span-3 space-y-6">
+          {mockInstances.map((instance) => (
+            <div key={instance.name} className="space-y-4">
+              <div 
+                className="cursor-pointer"
+                onClick={() => toggleInstance(instance.name)}
+              >
+                <GrafanaInstanceCard 
+                  instance={{
+                    name: instance.name,
+                    url: instance.url,
+                    folders: instance.totalFolders,
+                    dashboards: instance.totalDashboards,
+                  }} 
+                />
+              </div>
+
+              {isInstanceExpanded(instance.name) && (
+                <div className="ml-6 space-y-6">
+                  {instance.folders.map((folder) => (
+                    <div key={folder.name} className="space-y-4">
+                      <h3 className="text-lg font-semibold">{folder.name}</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {folder.dashboards
+                          .filter(shouldShowDashboard)
+                          .map((dashboard, idx) => (
+                            <DashboardCard key={idx} dashboard={dashboard} />
+                          ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
         </div>
-      </section>
-
-      <section className="mb-8">
-        <h2 className="text-xl font-semibold mb-4">Filter by Tags</h2>
-        <TagFilter 
-          tags={mockTags}
-          selectedTags={selectedTags}
-          onTagSelect={handleTagSelect}
-        />
-      </section>
-
-      <section>
-        <h2 className="text-xl font-semibold mb-4">Dashboards</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredDashboards.map((dashboard, index) => (
-            <DashboardCard key={index} dashboard={dashboard} />
-          ))}
-        </div>
-      </section>
+      </div>
     </div>
   );
 };
