@@ -39,6 +39,7 @@ interface Props {
   expandedInstances: Record<string, boolean>;
   onFolderToggle: (folderId: string) => void;
   onInstanceToggle: (instanceName: string) => void;
+  onRemoveInstance?: (name: string) => void;
 }
 
 const DemoInstances = ({
@@ -49,6 +50,7 @@ const DemoInstances = ({
   expandedInstances,
   onFolderToggle,
   onInstanceToggle,
+  onRemoveInstance,
 }: Props) => {
   const filterDashboards = (dashboards: DashboardData[]) => {
     return dashboards.filter(dashboard => {
@@ -146,7 +148,10 @@ const DemoInstances = ({
               ) : (
                 <ChevronRight className="h-4 w-4" />
               )}
-              <GrafanaInstanceCard instance={instance} />
+              <GrafanaInstanceCard 
+                instance={instance} 
+                onRemove={onRemoveInstance}
+              />
             </div>
           </CollapsibleTrigger>
           <CollapsibleContent>

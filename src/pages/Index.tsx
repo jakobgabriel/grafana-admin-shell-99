@@ -179,6 +179,14 @@ const Index = () => {
     setIsAdminPanelOpen(false);
   };
 
+  const handleRemoveInstance = (name: string) => {
+    setInstances(prev => prev.filter(instance => instance.name !== name));
+    toast({
+      title: "Instance Removed",
+      description: `Successfully removed ${name} from your instances.`
+    });
+  };
+
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
@@ -244,6 +252,7 @@ const Index = () => {
             expandedInstances={expandedInstances}
             onFolderToggle={toggleFolder}
             onInstanceToggle={toggleInstance}
+            onRemoveInstance={handleRemoveInstance}
           />
         </div>
       )}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from "react-hook-form"
 import { X } from "lucide-react"
 import {
@@ -21,6 +21,7 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { useToast } from "@/hooks/use-toast"
 
 interface GrafanaInstanceFormData {
   name: string;
@@ -35,7 +36,13 @@ interface AdminPanelProps {
   onAddInstance: (instance: GrafanaInstanceFormData) => void;
 }
 
+const ADMIN_PASSWORD = "grafana123"; // In a real app, this should be stored securely
+
 const AdminPanel = ({ isOpen, onClose, onAddInstance }: AdminPanelProps) => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState("");
+  const { toast } = useToast();
+  
   const form = useForm<GrafanaInstanceFormData>({
     defaultValues: {
       name: "",
@@ -45,12 +52,58 @@ const AdminPanel = ({ isOpen, onClose, onAddInstance }: AdminPanelProps) => {
     },
   });
 
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === ADMIN_PASSWORD) {
+      setIsAuthenticated(true);
+      setPassword("");
+    } else {
+      toast({
+        title: "Invalid Password",
+        description: "Please enter the correct password to access admin panel",
+        variant: "destructive",
+      });
+    }
+  };
+
   const onSubmit = (data: GrafanaInstanceFormData) => {
     console.log("Adding new Grafana instance:", data);
     onAddInstance(data);
     form.reset();
     onClose();
   };
+
+  if (!isAuthenticated) {
+    return (
+      <Drawer open={isOpen} onOpenChange={onClose}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>Admin Authentication Required</DrawerTitle>
+            <DrawerDescription>
+              Please enter the admin password to continue
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="p-4">
+            <form onSubmit={handlePasswordSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="password" className="text-sm font-medium">
+                  Password
+                </label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter admin password"
+                />
+              </div>
+              <Button type="submit">Login</Button>
+            </form>
+          </div>
+        </DrawerContent>
+      </Drawer>
+    );
+  }
 
   return (
     <Drawer open={isOpen} onOpenChange={onClose}>
