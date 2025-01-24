@@ -21,18 +21,33 @@ interface GrafanaInstance extends GrafanaInstanceFormData {
   dashboardsList: any[];
 }
 
+const STORAGE_KEY = 'grafana-instances';
+
 const Index = () => {
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
   const [instances, setInstances] = useState<GrafanaInstance[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const { toast } = useToast();
 
-  // Demo data for hierarchy view
+  // Load instances from localStorage on mount
+  useEffect(() => {
+    const savedInstances = localStorage.getItem(STORAGE_KEY);
+    if (savedInstances) {
+      setInstances(JSON.parse(savedInstances));
+    }
+  }, []);
+
+  // Save instances to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(instances));
+  }, [instances]);
+
+  // Enhanced demo data
   const demoInstance = {
-    name: "Demo Instance",
-    url: "https://demo.grafana.net",
-    folders: 3,
-    dashboards: 12,
+    name: "Demo Grafana",
+    url: "https://play.grafana.org",
+    folders: 5,
+    dashboards: 15,
     foldersList: [],
     dashboardsList: []
   };
@@ -40,19 +55,30 @@ const Index = () => {
   const demoDashboards = [
     {
       title: "System Overview",
-      description: "Key system metrics and health indicators",
-      url: "https://demo.grafana.net/d/system",
-      tags: ["system", "monitoring"]
+      description: "Complete system metrics dashboard with CPU, Memory, Network, and Disk usage metrics",
+      url: "https://play.grafana.org/d/rYdddlPWk/node-exporter-full",
+      tags: ["system", "monitoring", "node-exporter"]
+    },
+    {
+      title: "Kubernetes Cluster",
+      description: "Kubernetes cluster monitoring with pod status, resource usage, and deployment metrics",
+      url: "https://play.grafana.org/d/kubernetes",
+      tags: ["kubernetes", "containers", "infrastructure"]
     },
     {
       title: "Application Performance",
-      description: "Application performance metrics and traces",
-      url: "https://demo.grafana.net/d/apm",
-      tags: ["apm", "performance"]
+      description: "Application performance monitoring with response times, error rates, and throughput metrics",
+      url: "https://play.grafana.org/d/apm",
+      tags: ["apm", "performance", "traces"]
+    },
+    {
+      title: "Database Metrics",
+      description: "PostgreSQL database performance monitoring with queries, connections, and resource metrics",
+      url: "https://play.grafana.org/d/postgres",
+      tags: ["database", "postgresql", "performance"]
     }
   ];
 
-  // Handle keyboard shortcut for admin panel
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       if (event.ctrlKey && event.shiftKey && event.key === 'A') {
@@ -180,9 +206,12 @@ const Index = () => {
     );
   };
 
-  const allTags = ["system", "monitoring", "apm", "performance"];
-
-  // ... keep existing code (render method with the same UI hierarchy)
+  const allTags = [
+    "system", "monitoring", "node-exporter",
+    "kubernetes", "containers", "infrastructure",
+    "apm", "performance", "traces",
+    "database", "postgresql"
+  ];
 
   return (
     <div className="container mx-auto p-4">
@@ -279,6 +308,3 @@ const Index = () => {
       />
     </div>
   );
-};
-
-export default Index;
