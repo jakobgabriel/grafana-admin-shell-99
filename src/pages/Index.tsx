@@ -170,7 +170,7 @@ const Index = () => {
               key={folder.id}
               open={expandedFolders[folder.id]}
               onOpenChange={() => toggleFolder(folder.id)}
-              className="border border-grafana-blue/10 rounded-lg overflow-hidden bg-grafana-background/50"
+              className="overflow-hidden"
             >
               <CollapsibleTrigger className="flex items-center w-full p-3 hover:bg-grafana-background/80 transition-colors">
                 <div className="flex items-center gap-2 text-grafana-blue">
@@ -198,7 +198,7 @@ const Index = () => {
         })}
 
         {generalDashboards.length > 0 && (
-          <div className="border border-grafana-blue/10 rounded-lg overflow-hidden bg-grafana-background/50">
+          <div className="overflow-hidden">
             <div className="flex items-center p-3">
               <div className="flex items-center gap-2 text-grafana-blue">
                 <Folder className="h-4 w-4" />
@@ -350,18 +350,15 @@ const Index = () => {
                 key={index}
                 open={expandedInstances[instance.name] !== false}
                 onOpenChange={() => toggleInstance(instance.name)}
-                className="border border-grafana-card rounded-lg overflow-hidden"
               >
                 <CollapsibleTrigger className="w-full">
-                  <div className="p-4 hover:bg-grafana-card transition-colors">
-                    <div className="flex items-center gap-2">
-                      {expandedInstances[instance.name] !== false ? (
-                        <ChevronDown className="h-4 w-4" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4" />
-                      )}
-                      <GrafanaInstanceCard instance={instance} />
-                    </div>
+                  <div className="flex items-center gap-2">
+                    {expandedInstances[instance.name] !== false ? (
+                      <ChevronDown className="h-4 w-4" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4" />
+                    )}
+                    <GrafanaInstanceCard instance={instance} />
                   </div>
                 </CollapsibleTrigger>
                 <CollapsibleContent>

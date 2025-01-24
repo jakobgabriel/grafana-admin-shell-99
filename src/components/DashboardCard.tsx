@@ -16,7 +16,7 @@ interface Props {
 
 const DashboardCard = ({ dashboard }: Props) => {
   return (
-    <Card className="bg-grafana-card text-grafana-text hover:shadow-lg transition-shadow">
+    <Card className="bg-grafana-card text-grafana-text hover:shadow-lg transition-shadow max-w-2xl">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>{dashboard.title}</span>
