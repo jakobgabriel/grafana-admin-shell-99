@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Plus, Settings } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 import AdminPanel from "@/components/AdminPanel";
 import GrafanaInstanceCard from "@/components/GrafanaInstanceCard";
 import DashboardCard from "@/components/DashboardCard";
@@ -13,17 +14,27 @@ interface GrafanaInstanceFormData {
   organizationId?: string;
 }
 
+interface GrafanaInstance extends GrafanaInstanceFormData {
+  folders: number;
+  dashboards: number;
+  foldersList: any[];
+  dashboardsList: any[];
+}
+
 const Index = () => {
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
-  const [instances, setInstances] = useState<GrafanaInstanceFormData[]>([]);
+  const [instances, setInstances] = useState<GrafanaInstance[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const { toast } = useToast();
 
   // Demo data for hierarchy view
   const demoInstance = {
     name: "Demo Instance",
     url: "https://demo.grafana.net",
     folders: 3,
-    dashboards: 12
+    dashboards: 12,
+    foldersList: [],
+    dashboardsList: []
   };
 
   const demoDashboards = [
@@ -53,9 +64,79 @@ const Index = () => {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, []);
 
-  const handleAddInstance = (instance: GrafanaInstanceFormData) => {
-    console.log('Adding new instance:', instance);
-    setInstances(prev => [...prev, instance]);
+  const fetchGrafanaData = async (instance: GrafanaInstanceFormData) => {
+    console.log('Fetching data for instance:', instance.name);
+    
+    try {
+      // Fetch folders
+      const foldersResponse = await fetch(`${instance.url}/api/folders`, {
+        headers: {
+          'Authorization': `Bearer ${instance.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!foldersResponse.ok) {
+        throw new Error(`Failed to fetch folders: ${foldersResponse.statusText}`);
+      }
+      
+      const folders = await foldersResponse.json();
+      console.log('Fetched folders:', folders);
+
+      // Fetch dashboards
+      const searchResponse = await fetch(`${instance.url}/api/search?type=dash-db`, {
+        headers: {
+          'Authorization': `Bearer ${instance.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!searchResponse.ok) {
+        throw new Error(`Failed to fetch dashboards: ${searchResponse.statusText}`);
+      }
+      
+      const dashboards = await searchResponse.json();
+      console.log('Fetched dashboards:', dashboards);
+
+      return {
+        ...instance,
+        folders: folders.length,
+        dashboards: dashboards.length,
+        foldersList: folders,
+        dashboardsList: dashboards,
+      };
+
+    } catch (error) {
+      console.error('Error fetching Grafana data:', error);
+      toast({
+        title: "Error fetching data",
+        description: `Failed to fetch data from ${instance.name}: ${error.message}`,
+        variant: "destructive",
+      });
+      return {
+        ...instance,
+        folders: 0,
+        dashboards: 0,
+        foldersList: [],
+        dashboardsList: [],
+      };
+    }
+  };
+
+  const handleAddInstance = async (instanceData: GrafanaInstanceFormData) => {
+    console.log('Adding new instance:', instanceData);
+    toast({
+      title: "Adding instance",
+      description: `Fetching data from ${instanceData.name}...`,
+    });
+
+    const enrichedInstance = await fetchGrafanaData(instanceData);
+    setInstances(prev => [...prev, enrichedInstance]);
+
+    toast({
+      title: "Instance added",
+      description: `Successfully added ${instanceData.name} with ${enrichedInstance.folders} folders and ${enrichedInstance.dashboards} dashboards`,
+    });
   };
 
   const handleTagSelect = (tag: string) => {
@@ -137,14 +218,27 @@ const Index = () => {
           <div className="space-y-6">
             {instances.map((instance, index) => (
               <div key={index} className="space-y-4">
-                <GrafanaInstanceCard
-                  instance={{
-                    name: instance.name,
-                    url: instance.url,
-                    folders: 0,
-                    dashboards: 0
-                  }}
-                />
+                <GrafanaInstanceCard instance={instance} />
+                {instance.dashboardsList.length > 0 && (
+                  <div className="grid gap-4">
+                    {instance.dashboardsList
+                      .filter(dashboard =>
+                        selectedTags.length === 0 ||
+                        (dashboard.tags && dashboard.tags.some(tag => selectedTags.includes(tag)))
+                      )
+                      .map((dashboard, idx) => (
+                        <DashboardCard
+                          key={idx}
+                          dashboard={{
+                            title: dashboard.title,
+                            description: dashboard.description || 'No description available',
+                            url: `${instance.url}/d/${dashboard.uid}`,
+                            tags: dashboard.tags || []
+                          }}
+                        />
+                      ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>
