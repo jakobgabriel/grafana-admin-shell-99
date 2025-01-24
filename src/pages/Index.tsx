@@ -259,7 +259,7 @@ const Index = () => {
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-grafana-text">Grafana Dashboard Explorer</h1>
+        <h1 className="text-2xl font-bold text-grafana-background">Grafana Dashboard Explorer</h1>
         <Button
           variant="outline"
           onClick={() => setIsAdminPanelOpen(true)}
