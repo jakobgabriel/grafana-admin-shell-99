@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Plus, Settings, ChevronRight, ChevronDown } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Plus, Settings, ChevronRight, ChevronDown, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AdminPanel from "@/components/AdminPanel";
 import GrafanaInstanceCard from "@/components/GrafanaInstanceCard";
@@ -34,6 +35,7 @@ const Index = () => {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
   const [expandedInstances, setExpandedInstances] = useState<Record<string, boolean>>({});
+  const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
 
   // Load instances from localStorage on mount
@@ -129,123 +131,6 @@ const Index = () => {
     }
   ];
 
-  const fetchGrafanaData = async (instance: GrafanaInstanceFormData) => {
-    console.log('Fetching data for instance:', instance.name);
-    
-    try {
-      const corsProxy = 'https://api.allorigins.win/get?url=';
-      const headers: Record<string, string> = {};
-      if (instance.url !== 'https://play.grafana.org') {
-        headers['Authorization'] = `Bearer ${instance.apiKey}`;
-      }
-      
-      const foldersUrl = `${instance.url}/api/folders`;
-      const encodedFoldersUrl = encodeURIComponent(foldersUrl);
-      console.log('Fetching folders from:', foldersUrl);
-      
-      const foldersResponse = await fetch(`${corsProxy}${encodedFoldersUrl}`, {
-        headers
-      });
-      
-      if (!foldersResponse.ok) {
-        throw new Error(`Failed to fetch folders: ${foldersResponse.statusText}`);
-      }
-      
-      const foldersData = await foldersResponse.json();
-      console.log('Raw folders response:', foldersData);
-      let folders = [];
-      try {
-        folders = JSON.parse(foldersData.contents || '[]');
-      } catch (e) {
-        console.error('Error parsing folders:', e);
-        folders = [];
-      }
-      console.log('Parsed folders:', folders);
-
-      const dashboardsUrl = `${instance.url}/api/search?type=dash-db`;
-      const encodedDashboardsUrl = encodeURIComponent(dashboardsUrl);
-      console.log('Fetching dashboards from:', dashboardsUrl);
-      
-      const searchResponse = await fetch(`${corsProxy}${encodedDashboardsUrl}`, {
-        headers
-      });
-      
-      if (!searchResponse.ok) {
-        throw new Error(`Failed to fetch dashboards: ${searchResponse.statusText}`);
-      }
-      
-      const dashboardsData = await searchResponse.json();
-      console.log('Raw dashboards response:', dashboardsData);
-      let dashboards = [];
-      try {
-        dashboards = JSON.parse(dashboardsData.contents || '[]');
-      } catch (e) {
-        console.error('Error parsing dashboards:', e);
-        dashboards = [];
-      }
-      console.log('Parsed dashboards:', dashboards);
-
-      return {
-        ...instance,
-        folders: folders.length,
-        dashboards: dashboards.length,
-        foldersList: folders,
-        dashboardsList: dashboards.map((dashboard: any) => ({
-          title: dashboard.title,
-          description: dashboard.description || 'No description available',
-          url: `${instance.url}/d/${dashboard.uid}`,
-          tags: dashboard.tags || []
-        }))
-      };
-
-    } catch (error) {
-      console.error('Error fetching Grafana data:', error);
-      toast({
-        title: "Error fetching data",
-        description: `Failed to fetch data from ${instance.name}: ${error.message}`,
-        variant: "destructive",
-      });
-      return {
-        ...instance,
-        folders: 0,
-        dashboards: 0,
-        foldersList: [],
-        dashboardsList: [],
-      };
-    }
-  };
-
-  const handleAddInstance = async (instanceData: GrafanaInstanceFormData) => {
-    console.log('Adding new instance:', instanceData);
-    toast({
-      title: "Adding instance",
-      description: `Fetching data from ${instanceData.name}...`,
-    });
-
-    const enrichedInstance = await fetchGrafanaData(instanceData);
-    setInstances(prev => [...prev, enrichedInstance]);
-
-    toast({
-      title: "Instance added",
-      description: `Successfully added ${instanceData.name} with ${enrichedInstance.folders} folders and ${enrichedInstance.dashboards} dashboards`,
-    });
-  };
-
-  const handleTagSelect = (tag: string) => {
-    setSelectedTags(prev =>
-      prev.includes(tag)
-        ? prev.filter(t => t !== tag)
-        : [...prev, tag]
-    );
-  };
-
-  const allTags = [
-    "system", "monitoring", "node-exporter",
-    "kubernetes", "containers", "infrastructure",
-    "apm", "performance", "traces",
-    "database", "postgresql"
-  ];
-
   const toggleInstance = (instanceName: string) => {
     setExpandedInstances(prev => ({
       ...prev,
@@ -253,52 +138,64 @@ const Index = () => {
     }));
   };
 
+  const filterDashboards = (dashboards: any[]) => {
+    return dashboards.filter(dashboard => {
+      const matchesSearch = searchQuery === '' || 
+        dashboard.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        dashboard.description.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesTags = selectedTags.length === 0 ||
+        dashboard.tags.some((tag: string) => selectedTags.includes(tag));
+      
+      return matchesSearch && matchesTags;
+    });
+  };
+
   const renderFolderStructure = (instance: GrafanaInstance) => {
-    const generalDashboards = instance.dashboardsList.filter(
-      dashboard => !dashboard.folderId || dashboard.folderId === 0
+    const generalDashboards = filterDashboards(
+      instance.dashboardsList.filter(dashboard => !dashboard.folderId || dashboard.folderId === "0")
     );
 
     return (
-      <div className="space-y-4">
-        {instance.foldersList.map((folder: any) => (
-          <Collapsible
-            key={folder.id}
-            open={expandedFolders[folder.id]}
-            onOpenChange={() => toggleFolder(folder.id)}
-          >
-            <CollapsibleTrigger className="flex items-center gap-2 w-full p-2 hover:bg-gray-100 rounded">
-              {expandedFolders[folder.id] ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-              <span className="font-medium">{folder.title}</span>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="pl-6 space-y-2">
-              {instance.dashboardsList
-                .filter(dashboard => dashboard.folderId === folder.id)
-                .filter(dashboard =>
-                  selectedTags.length === 0 ||
-                  dashboard.tags.some(tag => selectedTags.includes(tag))
-                )
-                .map((dashboard, idx) => (
+      <div className="space-y-4 pl-4">
+        {instance.foldersList.map((folder: any) => {
+          const folderDashboards = filterDashboards(
+            instance.dashboardsList.filter(dashboard => dashboard.folderId === folder.id)
+          );
+
+          if (folderDashboards.length === 0) return null;
+
+          return (
+            <Collapsible
+              key={folder.id}
+              open={expandedFolders[folder.id]}
+              onOpenChange={() => toggleFolder(folder.id)}
+              className="bg-grafana-background rounded-lg p-2"
+            >
+              <CollapsibleTrigger className="flex items-center gap-2 w-full p-2 hover:bg-grafana-card rounded transition-colors">
+                {expandedFolders[folder.id] ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+                <span className="font-medium text-grafana-text">{folder.title}</span>
+                <span className="text-sm text-gray-500 ml-2">({folderDashboards.length} dashboards)</span>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pl-6 space-y-2 mt-2">
+                {folderDashboards.map((dashboard, idx) => (
                   <DashboardCard key={idx} dashboard={dashboard} />
                 ))}
-            </CollapsibleContent>
-          </Collapsible>
-        ))}
+              </CollapsibleContent>
+            </Collapsible>
+          );
+        })}
 
         {generalDashboards.length > 0 && (
-          <div className="space-y-2">
-            <h3 className="font-medium">General</h3>
-            {generalDashboards
-              .filter(dashboard =>
-                selectedTags.length === 0 ||
-                dashboard.tags.some(tag => selectedTags.includes(tag))
-              )
-              .map((dashboard, idx) => (
-                <DashboardCard key={idx} dashboard={dashboard} />
-              ))}
+          <div className="space-y-2 bg-grafana-background rounded-lg p-4">
+            <h3 className="font-medium text-grafana-text mb-4">General</h3>
+            {generalDashboards.map((dashboard, idx) => (
+              <DashboardCard key={idx} dashboard={dashboard} />
+            ))}
           </div>
         )}
       </div>
@@ -308,7 +205,7 @@ const Index = () => {
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Grafana Dashboard Explorer</h1>
+        <h1 className="text-2xl font-bold text-grafana-text">Grafana Dashboard Explorer</h1>
         <Button
           variant="outline"
           onClick={() => setIsAdminPanelOpen(true)}
@@ -317,6 +214,19 @@ const Index = () => {
           <Settings className="w-4 h-4" />
           Admin Panel
         </Button>
+      </div>
+
+      <div className="mb-6">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+          <Input
+            type="text"
+            placeholder="Search dashboards..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
       </div>
 
       {instances.length === 0 ? (
@@ -386,9 +296,10 @@ const Index = () => {
                 key={index}
                 open={expandedInstances[instance.name] !== false}
                 onOpenChange={() => toggleInstance(instance.name)}
+                className="border border-grafana-card rounded-lg overflow-hidden"
               >
-                <div className="space-y-4">
-                  <CollapsibleTrigger className="w-full">
+                <CollapsibleTrigger className="w-full">
+                  <div className="p-4 hover:bg-grafana-card transition-colors">
                     <div className="flex items-center gap-2">
                       {expandedInstances[instance.name] !== false ? (
                         <ChevronDown className="h-4 w-4" />
@@ -397,11 +308,11 @@ const Index = () => {
                       )}
                       <GrafanaInstanceCard instance={instance} />
                     </div>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    {renderFolderStructure(instance)}
-                  </CollapsibleContent>
-                </div>
+                  </div>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  {renderFolderStructure(instance)}
+                </CollapsibleContent>
               </Collapsible>
             ))}
           </div>
