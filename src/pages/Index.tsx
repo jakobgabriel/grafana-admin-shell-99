@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Plus, Settings } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import AdminPanel from "@/components/AdminPanel";
 import GrafanaInstanceCard from "@/components/GrafanaInstanceCard";
 import DashboardCard from "@/components/DashboardCard";
@@ -68,12 +68,18 @@ const Index = () => {
     console.log('Fetching data for instance:', instance.name);
     
     try {
+      // Using cors-proxy.io as a temporary solution
+      const corsProxy = 'https://cors-proxy.io/api/';
+      const headers = {
+        'Authorization': `Bearer ${instance.apiKey}`,
+        'Content-Type': 'application/json',
+      };
+
       // Fetch folders
-      const foldersResponse = await fetch(`${instance.url}/api/folders`, {
-        headers: {
-          'Authorization': `Bearer ${instance.apiKey}`,
-          'Content-Type': 'application/json',
-        },
+      console.log('Fetching folders from:', `${corsProxy}${instance.url}/api/folders`);
+      const foldersResponse = await fetch(`${corsProxy}${instance.url}/api/folders`, {
+        headers,
+        mode: 'cors',
       });
       
       if (!foldersResponse.ok) {
@@ -84,11 +90,10 @@ const Index = () => {
       console.log('Fetched folders:', folders);
 
       // Fetch dashboards
-      const searchResponse = await fetch(`${instance.url}/api/search?type=dash-db`, {
-        headers: {
-          'Authorization': `Bearer ${instance.apiKey}`,
-          'Content-Type': 'application/json',
-        },
+      console.log('Fetching dashboards from:', `${corsProxy}${instance.url}/api/search?type=dash-db`);
+      const searchResponse = await fetch(`${corsProxy}${instance.url}/api/search?type=dash-db`, {
+        headers,
+        mode: 'cors',
       });
       
       if (!searchResponse.ok) {
