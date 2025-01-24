@@ -2,11 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import AdminPanel from "@/components/AdminPanel";
 import Header from "@/components/Header";
-import SearchBar from "@/components/SearchBar";
-import InstancesSection from "@/components/InstancesSection";
-import OverviewStats from "@/components/OverviewStats";
+import SearchAndTabs from "@/components/SearchAndTabs";
 import { fetchGrafanaData } from "@/utils/grafanaApi";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface GrafanaInstanceFormData {
   name: string;
@@ -188,42 +185,21 @@ const Index = () => {
     <div className="container mx-auto p-4">
       <Header onOpenAdminPanel={() => setIsAdminPanelOpen(true)} />
       
-      <div className="mb-6">
-        <SearchBar 
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-        />
-      </div>
-
-      <Tabs defaultValue="instances" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="instances">Instances</TabsTrigger>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="instances">
-          <InstancesSection
-            instances={instances}
-            demoInstances={demoInstances}
-            searchQuery={searchQuery}
-            selectedTags={selectedTags}
-            expandedFolders={expandedFolders}
-            expandedInstances={expandedInstances}
-            allTags={allTags}
-            onTagSelect={handleTagSelect}
-            onFolderToggle={toggleFolder}
-            onInstanceToggle={toggleInstance}
-            onRemoveInstance={handleRemoveInstance}
-            onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
-          />
-        </TabsContent>
-        
-        <TabsContent value="overview">
-          <OverviewStats 
-            instances={instances.length > 0 ? instances : demoInstances} 
-          />
-        </TabsContent>
-      </Tabs>
+      <SearchAndTabs
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        instances={instances}
+        demoInstances={demoInstances}
+        selectedTags={selectedTags}
+        expandedFolders={expandedFolders}
+        expandedInstances={expandedInstances}
+        allTags={allTags}
+        onTagSelect={handleTagSelect}
+        onFolderToggle={toggleFolder}
+        onInstanceToggle={toggleInstance}
+        onRemoveInstance={handleRemoveInstance}
+        onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
+      />
 
       <AdminPanel
         isOpen={isAdminPanelOpen}
