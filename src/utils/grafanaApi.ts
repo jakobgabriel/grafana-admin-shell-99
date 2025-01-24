@@ -32,44 +32,9 @@ export const fetchGrafanaData = async (instance: GrafanaInstanceFormData): Promi
   console.log('Attempting to fetch Grafana data for instance:', instance.name);
   
   try {
-    // First verify the connection by fetching health status
-    console.log('Checking Grafana health status...');
-    const healthResponse = await fetch(`${instance.url}/api/health`, {
-      headers: {
-        'Authorization': `Bearer ${instance.apiKey}`,
-        'Accept': 'application/json',
-      },
-      mode: 'cors'
-    });
-
-    if (!healthResponse.ok) {
-      console.error('Health check failed:', healthResponse.statusText);
-      toast.error(`Connection to ${instance.name} failed. Please check your URL and API key.`);
-      return null;
-    }
-
-    // Fetch folders
-    console.log('Fetching folders...');
-    const foldersResponse = await fetch(`${instance.url}/api/folders`, {
-      headers: {
-        'Authorization': `Bearer ${instance.apiKey}`,
-        'Accept': 'application/json',
-      },
-      mode: 'cors'
-    });
-
-    if (!foldersResponse.ok) {
-      console.error('Failed to fetch folders:', foldersResponse.statusText);
-      toast.error(`Failed to fetch folders from ${instance.name}. Check API permissions.`);
-      return null;
-    }
-
-    const folders: FolderData[] = await foldersResponse.json();
-    console.log('Successfully fetched folders:', folders);
-
-    // Fetch dashboards
-    console.log('Fetching dashboards...');
-    const searchResponse = await fetch(`${instance.url}/api/search?type=dash-db`, {
+    // Fetch both folders and dashboards in a single request
+    console.log('Fetching Grafana data using search endpoint...');
+    const searchResponse = await fetch(`${instance.url}/api/search?type=dash-db,folder`, {
       headers: {
         'Authorization': `Bearer ${instance.apiKey}`,
         'Accept': 'application/json',
@@ -78,33 +43,41 @@ export const fetchGrafanaData = async (instance: GrafanaInstanceFormData): Promi
     });
 
     if (!searchResponse.ok) {
-      console.error('Failed to fetch dashboards:', searchResponse.statusText);
-      toast.error(`Failed to fetch dashboards from ${instance.name}. Check API permissions.`);
+      console.error('Search request failed:', searchResponse.statusText);
+      toast.error(`Connection to ${instance.name} failed. Please check your URL and API key.`);
       return null;
     }
 
-    const dashboardsSearch = await searchResponse.json();
-    console.log('Successfully fetched dashboards:', dashboardsSearch);
+    const searchResults = await searchResponse.json();
+    console.log('Successfully fetched search results:', searchResults);
 
-    // Transform dashboard data to match our interface
-    const dashboards: DashboardData[] = dashboardsSearch.map((dash: any) => ({
-      title: dash.title,
-      description: dash.description || 'No description available',
-      url: `${instance.url}${dash.url}`,
-      tags: dash.tags || [],
-      folderId: dash.folderId?.toString() || "0"
-    }));
+    // Separate folders and dashboards
+    const folders: FolderData[] = searchResults
+      .filter((item: any) => item.type === 'folder')
+      .map((folder: any) => ({
+        id: folder.id.toString(),
+        title: folder.title,
+        uid: folder.uid
+      }));
 
-    // Return the complete instance data
+    const dashboards: DashboardData[] = searchResults
+      .filter((item: any) => item.type === 'dash-db')
+      .map((dash: any) => ({
+        title: dash.title,
+        description: dash.description || 'No description available',
+        url: `${instance.url}${dash.url}`,
+        tags: dash.tags || [],
+        folderId: dash.folderId?.toString() || "0"
+      }));
+
+    console.log('Processed folders:', folders);
+    console.log('Processed dashboards:', dashboards);
+
     const result: GrafanaInstance = {
       ...instance,
       folders: folders.length,
       dashboards: dashboards.length,
-      foldersList: folders.map(folder => ({
-        id: folder.id,
-        title: folder.title,
-        uid: folder.uid
-      })),
+      foldersList: folders,
       dashboardsList: dashboards
     };
 
