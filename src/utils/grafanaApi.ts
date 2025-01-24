@@ -36,12 +36,19 @@ export const fetchGrafanaData = async (instance: GrafanaInstanceFormData): Promi
     const healthResponse = await fetch(`${instance.url}/api/health`, {
       headers: {
         'Authorization': `Bearer ${instance.apiKey}`,
+        'Accept': 'application/json',
+        'Access-Control-Allow-Origin': '*',
       },
+      mode: 'cors',
+      credentials: 'include'
     });
 
     if (!healthResponse.ok) {
       console.error('Health check failed:', healthResponse.statusText);
-      toast.error(`Failed to connect to ${instance.name}: ${healthResponse.statusText}`);
+      toast.error(`Failed to connect to ${instance.name}. Please ensure:
+        1. The Grafana URL is correct and accessible
+        2. CORS is enabled on your Grafana server
+        3. The API key has correct permissions`);
       return null;
     }
 
@@ -50,12 +57,16 @@ export const fetchGrafanaData = async (instance: GrafanaInstanceFormData): Promi
     const foldersResponse = await fetch(`${instance.url}/api/folders`, {
       headers: {
         'Authorization': `Bearer ${instance.apiKey}`,
+        'Accept': 'application/json',
+        'Access-Control-Allow-Origin': '*',
       },
+      mode: 'cors',
+      credentials: 'include'
     });
 
     if (!foldersResponse.ok) {
       console.error('Failed to fetch folders:', foldersResponse.statusText);
-      toast.error(`Failed to fetch folders from ${instance.name}`);
+      toast.error(`Failed to fetch folders from ${instance.name}. Check API permissions.`);
       return null;
     }
 
@@ -67,12 +78,16 @@ export const fetchGrafanaData = async (instance: GrafanaInstanceFormData): Promi
     const searchResponse = await fetch(`${instance.url}/api/search?type=dash-db`, {
       headers: {
         'Authorization': `Bearer ${instance.apiKey}`,
+        'Accept': 'application/json',
+        'Access-Control-Allow-Origin': '*',
       },
+      mode: 'cors',
+      credentials: 'include'
     });
 
     if (!searchResponse.ok) {
       console.error('Failed to fetch dashboards:', searchResponse.statusText);
-      toast.error(`Failed to fetch dashboards from ${instance.name}`);
+      toast.error(`Failed to fetch dashboards from ${instance.name}. Check API permissions.`);
       return null;
     }
 
@@ -103,7 +118,10 @@ export const fetchGrafanaData = async (instance: GrafanaInstanceFormData): Promi
 
   } catch (error) {
     console.error('Error fetching Grafana data:', error);
-    toast.error(`Failed to fetch data from ${instance.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    toast.error(`Unable to connect to ${instance.name}. Please verify:
+      1. The Grafana server is accessible
+      2. CORS is properly configured
+      3. The API key is valid`);
     return null;
   }
 };
