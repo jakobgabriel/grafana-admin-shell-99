@@ -1,17 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Settings, ChevronRight, ChevronDown, Search, Folder } from "lucide-react";
+import { Settings, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AdminPanel from "@/components/AdminPanel";
-import GrafanaInstanceCard from "@/components/GrafanaInstanceCard";
-import DashboardCard from "@/components/DashboardCard";
 import TagFilter from "@/components/TagFilter";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import WelcomeSection from "@/components/WelcomeSection";
+import DemoInstances from "@/components/DemoInstances";
 
 interface GrafanaInstanceFormData {
   name: string;
@@ -29,6 +24,79 @@ interface GrafanaInstance extends GrafanaInstanceFormData {
 
 const STORAGE_KEY = 'grafana-instances';
 
+// Demo data
+const demoInstances = [
+  {
+    name: "Production Grafana",
+    url: "https://play.grafana.org",
+    apiKey: "", // Added apiKey to match GrafanaInstance type
+    folders: 3,
+    dashboards: 8,
+    foldersList: [
+      { id: "1", title: "System Monitoring" },
+      { id: "2", title: "Application Metrics" },
+      { id: "3", title: "Infrastructure" }
+    ],
+    dashboardsList: [
+      {
+        title: "System Overview",
+        description: "Complete system metrics dashboard with CPU, Memory, Network, and Disk usage metrics",
+        url: "https://play.grafana.org/d/rYdddlPWk/node-exporter-full",
+        tags: ["system", "monitoring", "node-exporter"],
+        folderId: "1"
+      },
+      {
+        title: "Application Performance",
+        description: "Application performance monitoring with response times, error rates, and throughput metrics",
+        url: "https://play.grafana.org/d/apm",
+        tags: ["apm", "performance", "traces"],
+        folderId: "2"
+      },
+      {
+        title: "Database Metrics",
+        description: "PostgreSQL database performance monitoring",
+        url: "https://play.grafana.org/d/postgres",
+        tags: ["database", "postgresql", "performance"],
+        folderId: "2"
+      }
+    ]
+  },
+  {
+    name: "Development Grafana",
+    url: "https://play-dev.grafana.org",
+    apiKey: "", // Added apiKey to match GrafanaInstance type
+    folders: 2,
+    dashboards: 7,
+    foldersList: [
+      { id: "4", title: "Development Metrics" },
+      { id: "5", title: "Testing Environment" }
+    ],
+    dashboardsList: [
+      {
+        title: "Dev Environment Health",
+        description: "Development environment health monitoring",
+        url: "https://play.grafana.org/d/dev-health",
+        tags: ["development", "monitoring"],
+        folderId: "4"
+      },
+      {
+        title: "Test Coverage Dashboard",
+        description: "Test coverage and quality metrics",
+        url: "https://play.grafana.org/d/test-coverage",
+        tags: ["testing", "quality"],
+        folderId: "5"
+      },
+      {
+        title: "CI/CD Pipeline",
+        description: "Continuous Integration and Deployment metrics",
+        url: "https://play.grafana.org/d/cicd",
+        tags: ["ci-cd", "pipeline"],
+        folderId: "4"
+      }
+    ]
+  }
+];
+
 const Index = () => {
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
   const [instances, setInstances] = useState<GrafanaInstance[]>([]);
@@ -38,7 +106,6 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
 
-  // Load instances from localStorage on mount
   useEffect(() => {
     const savedInstances = localStorage.getItem(STORAGE_KEY);
     if (savedInstances) {
@@ -46,7 +113,6 @@ const Index = () => {
     }
   }, []);
 
-  // Save instances to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(instances));
   }, [instances]);
@@ -58,165 +124,11 @@ const Index = () => {
     }));
   };
 
-  // Enhanced demo data with two instances
-  const demoInstances = [
-    {
-      name: "Production Grafana",
-      url: "https://play.grafana.org",
-      apiKey: "", // Added apiKey to match GrafanaInstance type
-      folders: 3,
-      dashboards: 8,
-      foldersList: [
-        { id: "1", title: "System Monitoring" },
-        { id: "2", title: "Application Metrics" },
-        { id: "3", title: "Infrastructure" }
-      ],
-      dashboardsList: [
-        {
-          title: "System Overview",
-          description: "Complete system metrics dashboard with CPU, Memory, Network, and Disk usage metrics",
-          url: "https://play.grafana.org/d/rYdddlPWk/node-exporter-full",
-          tags: ["system", "monitoring", "node-exporter"],
-          folderId: "1"
-        },
-        {
-          title: "Application Performance",
-          description: "Application performance monitoring with response times, error rates, and throughput metrics",
-          url: "https://play.grafana.org/d/apm",
-          tags: ["apm", "performance", "traces"],
-          folderId: "2"
-        },
-        {
-          title: "Database Metrics",
-          description: "PostgreSQL database performance monitoring",
-          url: "https://play.grafana.org/d/postgres",
-          tags: ["database", "postgresql", "performance"],
-          folderId: "2"
-        }
-      ]
-    },
-    {
-      name: "Development Grafana",
-      url: "https://play-dev.grafana.org",
-      apiKey: "", // Added apiKey to match GrafanaInstance type
-      folders: 2,
-      dashboards: 7,
-      foldersList: [
-        { id: "4", title: "Development Metrics" },
-        { id: "5", title: "Testing Environment" }
-      ],
-      dashboardsList: [
-        {
-          title: "Dev Environment Health",
-          description: "Development environment health monitoring",
-          url: "https://play.grafana.org/d/dev-health",
-          tags: ["development", "monitoring"],
-          folderId: "4"
-        },
-        {
-          title: "Test Coverage Dashboard",
-          description: "Test coverage and quality metrics",
-          url: "https://play.grafana.org/d/test-coverage",
-          tags: ["testing", "quality"],
-          folderId: "5"
-        },
-        {
-          title: "CI/CD Pipeline",
-          description: "Continuous Integration and Deployment metrics",
-          url: "https://play.grafana.org/d/cicd",
-          tags: ["ci-cd", "pipeline"],
-          folderId: "4"
-        }
-      ]
-    }
-  ];
-
   const toggleInstance = (instanceName: string) => {
     setExpandedInstances(prev => ({
       ...prev,
       [instanceName]: !prev[instanceName]
     }));
-  };
-
-  const filterDashboards = (dashboards: any[]) => {
-    return dashboards.filter(dashboard => {
-      const matchesSearch = searchQuery === '' || 
-        dashboard.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        dashboard.description.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      const matchesTags = selectedTags.length === 0 ||
-        dashboard.tags.some((tag: string) => selectedTags.includes(tag));
-      
-      return matchesSearch && matchesTags;
-    });
-  };
-
-  const renderFolderStructure = (instance: GrafanaInstance) => {
-    const generalDashboards = filterDashboards(
-      instance.dashboardsList.filter(dashboard => !dashboard.folderId || dashboard.folderId === "0")
-    );
-
-    return (
-      <div className="space-y-2">
-        {instance.foldersList.map((folder: any) => {
-          const folderDashboards = filterDashboards(
-            instance.dashboardsList.filter(dashboard => dashboard.folderId === folder.id)
-          );
-
-          if (folderDashboards.length === 0) return null;
-
-          return (
-            <Collapsible
-              key={folder.id}
-              open={expandedFolders[folder.id]}
-              onOpenChange={() => toggleFolder(folder.id)}
-              className="overflow-hidden"
-            >
-              <CollapsibleTrigger className="flex items-center w-full p-3 hover:bg-grafana-background/80 transition-colors">
-                <div className="flex items-center gap-2 text-grafana-blue">
-                  {expandedFolders[folder.id] ? (
-                    <ChevronDown className="h-4 w-4" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4" />
-                  )}
-                  <Folder className="h-4 w-4" />
-                </div>
-                <span className="font-medium text-grafana-text ml-2">{folder.title}</span>
-                <span className="text-sm text-muted-foreground ml-2">
-                  ({folderDashboards.length} {folderDashboards.length === 1 ? 'dashboard' : 'dashboards'})
-                </span>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <div className="p-3 space-y-2 bg-grafana-background/30">
-                  {folderDashboards.map((dashboard, idx) => (
-                    <DashboardCard key={idx} dashboard={dashboard} />
-                  ))}
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-          );
-        })}
-
-        {generalDashboards.length > 0 && (
-          <div className="overflow-hidden">
-            <div className="flex items-center p-3">
-              <div className="flex items-center gap-2 text-grafana-blue">
-                <Folder className="h-4 w-4" />
-              </div>
-              <span className="font-medium text-grafana-text ml-2">General</span>
-              <span className="text-sm text-muted-foreground ml-2">
-                ({generalDashboards.length} {generalDashboards.length === 1 ? 'dashboard' : 'dashboards'})
-              </span>
-            </div>
-            <div className="p-3 space-y-2 bg-grafana-background/30">
-              {generalDashboards.map((dashboard, idx) => (
-                <DashboardCard key={idx} dashboard={dashboard} />
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    );
   };
 
   // Extract all unique tags from demo instances
@@ -259,7 +171,7 @@ const Index = () => {
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-grafana-background">Grafana Dashboard Explorer</h1>
+        <h1 className="text-2xl font-bold text-grafana-text">Grafana Dashboard Explorer</h1>
         <Button
           variant="outline"
           onClick={() => setIsAdminPanelOpen(true)}
@@ -285,22 +197,7 @@ const Index = () => {
 
       {instances.length === 0 ? (
         <div className="grid gap-6">
-          <div className="text-center p-8 border-2 border-dashed rounded-lg">
-            <h2 className="text-xl font-semibold mb-4">Welcome to Grafana Dashboard Explorer</h2>
-            <p className="text-muted-foreground mb-6">
-              Get started by adding your first Grafana instance or explore the demo view
-            </p>
-            <div className="flex justify-center gap-4">
-              <Button
-                onClick={() => setIsAdminPanelOpen(true)}
-                className="flex items-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                Add Grafana Instance
-              </Button>
-            </div>
-          </div>
-
+          <WelcomeSection onOpenAdminPanel={() => setIsAdminPanelOpen(true)} />
           <div className="grid gap-6">
             <h3 className="text-lg font-semibold">Demo View</h3>
             <div className="grid md:grid-cols-[250px,1fr] gap-6">
@@ -309,31 +206,15 @@ const Index = () => {
                 selectedTags={selectedTags}
                 onTagSelect={handleTagSelect}
               />
-              <div className="space-y-6">
-                {demoInstances.map((instance, index) => (
-                  <Collapsible
-                    key={index}
-                    open={expandedInstances[instance.name] !== false}
-                    onOpenChange={() => toggleInstance(instance.name)}
-                  >
-                    <div className="space-y-4">
-                      <CollapsibleTrigger className="w-full">
-                        <div className="flex items-center gap-2">
-                          {expandedInstances[instance.name] !== false ? (
-                            <ChevronDown className="h-4 w-4" />
-                          ) : (
-                            <ChevronRight className="h-4 w-4" />
-                          )}
-                          <GrafanaInstanceCard instance={instance} />
-                        </div>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        {renderFolderStructure(instance)}
-                      </CollapsibleContent>
-                    </div>
-                  </Collapsible>
-                ))}
-              </div>
+              <DemoInstances
+                instances={demoInstances}
+                searchQuery={searchQuery}
+                selectedTags={selectedTags}
+                expandedFolders={expandedFolders}
+                expandedInstances={expandedInstances}
+                onFolderToggle={toggleFolder}
+                onInstanceToggle={toggleInstance}
+              />
             </div>
           </div>
         </div>
@@ -344,29 +225,15 @@ const Index = () => {
             selectedTags={selectedTags}
             onTagSelect={handleTagSelect}
           />
-          <div className="space-y-6">
-            {instances.map((instance, index) => (
-              <Collapsible
-                key={index}
-                open={expandedInstances[instance.name] !== false}
-                onOpenChange={() => toggleInstance(instance.name)}
-              >
-                <CollapsibleTrigger className="w-full">
-                  <div className="flex items-center gap-2">
-                    {expandedInstances[instance.name] !== false ? (
-                      <ChevronDown className="h-4 w-4" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4" />
-                    )}
-                    <GrafanaInstanceCard instance={instance} />
-                  </div>
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  {renderFolderStructure(instance)}
-                </CollapsibleContent>
-              </Collapsible>
-            ))}
-          </div>
+          <DemoInstances
+            instances={instances}
+            searchQuery={searchQuery}
+            selectedTags={selectedTags}
+            expandedFolders={expandedFolders}
+            expandedInstances={expandedInstances}
+            onFolderToggle={toggleFolder}
+            onInstanceToggle={toggleInstance}
+          />
         </div>
       )}
 
