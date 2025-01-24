@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Settings, ChevronRight, ChevronDown, Search } from "lucide-react";
@@ -200,6 +200,43 @@ const Index = () => {
         )}
       </div>
     );
+  };
+
+  // Extract all unique tags from demo instances
+  const allTags = useMemo(() => {
+    const tagsSet = new Set<string>();
+    demoInstances.forEach(instance => {
+      instance.dashboardsList.forEach(dashboard => {
+        dashboard.tags.forEach((tag: string) => tagsSet.add(tag));
+      });
+    });
+    return Array.from(tagsSet);
+  }, []);
+
+  const handleTagSelect = (tag: string) => {
+    setSelectedTags(prev => {
+      if (prev.includes(tag)) {
+        return prev.filter(t => t !== tag);
+      }
+      return [...prev, tag];
+    });
+  };
+
+  const handleAddInstance = (instance: GrafanaInstanceFormData) => {
+    console.log("Adding new instance:", instance);
+    const newInstance: GrafanaInstance = {
+      ...instance,
+      folders: 0,
+      dashboards: 0,
+      foldersList: [],
+      dashboardsList: []
+    };
+    
+    setInstances(prev => [...prev, newInstance]);
+    toast({
+      title: "Instance Added",
+      description: `Successfully added ${instance.name} to your instances.`
+    });
   };
 
   return (
