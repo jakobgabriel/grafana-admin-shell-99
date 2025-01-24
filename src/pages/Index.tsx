@@ -68,18 +68,18 @@ const Index = () => {
     console.log('Fetching data for instance:', instance.name);
     
     try {
-      // Using cors-proxy.io as a temporary solution
-      const corsProxy = 'https://cors-proxy.io/api/';
+      // Using allorigins.win as CORS proxy
+      const corsProxy = 'https://api.allorigins.win/raw?url=';
       const headers = {
         'Authorization': `Bearer ${instance.apiKey}`,
         'Content-Type': 'application/json',
       };
 
       // Fetch folders
-      console.log('Fetching folders from:', `${corsProxy}${instance.url}/api/folders`);
-      const foldersResponse = await fetch(`${corsProxy}${instance.url}/api/folders`, {
+      const encodedFoldersUrl = encodeURIComponent(`${instance.url}/api/folders`);
+      console.log('Fetching folders from:', `${corsProxy}${encodedFoldersUrl}`);
+      const foldersResponse = await fetch(`${corsProxy}${encodedFoldersUrl}`, {
         headers,
-        mode: 'cors',
       });
       
       if (!foldersResponse.ok) {
@@ -90,10 +90,10 @@ const Index = () => {
       console.log('Fetched folders:', folders);
 
       // Fetch dashboards
-      console.log('Fetching dashboards from:', `${corsProxy}${instance.url}/api/search?type=dash-db`);
-      const searchResponse = await fetch(`${corsProxy}${instance.url}/api/search?type=dash-db`, {
+      const encodedDashboardsUrl = encodeURIComponent(`${instance.url}/api/search?type=dash-db`);
+      console.log('Fetching dashboards from:', `${corsProxy}${encodedDashboardsUrl}`);
+      const searchResponse = await fetch(`${corsProxy}${encodedDashboardsUrl}`, {
         headers,
-        mode: 'cors',
       });
       
       if (!searchResponse.ok) {
