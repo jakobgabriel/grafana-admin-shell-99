@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Plus, Settings } from "lucide-react";
+import { Plus, Settings, ChevronRight, ChevronDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AdminPanel from "@/components/AdminPanel";
 import GrafanaInstanceCard from "@/components/GrafanaInstanceCard";
 import DashboardCard from "@/components/DashboardCard";
 import TagFilter from "@/components/TagFilter";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 interface GrafanaInstanceFormData {
   name: string;
@@ -27,6 +32,7 @@ const Index = () => {
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
   const [instances, setInstances] = useState<GrafanaInstance[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
 
   // Load instances from localStorage on mount
@@ -213,6 +219,65 @@ const Index = () => {
     "database", "postgresql"
   ];
 
+  const toggleFolder = (folderId: string) => {
+    setExpandedFolders(prev => ({
+      ...prev,
+      [folderId]: !prev[folderId]
+    }));
+  };
+
+  const renderFolderStructure = (instance: GrafanaInstance) => {
+    const generalDashboards = instance.dashboardsList.filter(
+      dashboard => !dashboard.folderId || dashboard.folderId === 0
+    );
+
+    return (
+      <div className="space-y-4">
+        {instance.foldersList.map((folder: any) => (
+          <Collapsible
+            key={folder.id}
+            open={expandedFolders[folder.id]}
+            onOpenChange={() => toggleFolder(folder.id)}
+          >
+            <CollapsibleTrigger className="flex items-center gap-2 w-full p-2 hover:bg-gray-100 rounded">
+              {expandedFolders[folder.id] ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+              <span className="font-medium">{folder.title}</span>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pl-6 space-y-2">
+              {instance.dashboardsList
+                .filter(dashboard => dashboard.folderId === folder.id)
+                .filter(dashboard =>
+                  selectedTags.length === 0 ||
+                  dashboard.tags.some(tag => selectedTags.includes(tag))
+                )
+                .map((dashboard, idx) => (
+                  <DashboardCard key={idx} dashboard={dashboard} />
+                ))}
+            </CollapsibleContent>
+          </Collapsible>
+        ))}
+
+        {generalDashboards.length > 0 && (
+          <div className="space-y-2">
+            <h3 className="font-medium">General</h3>
+            {generalDashboards
+              .filter(dashboard =>
+                selectedTags.length === 0 ||
+                dashboard.tags.some(tag => selectedTags.includes(tag))
+              )
+              .map((dashboard, idx) => (
+                <DashboardCard key={idx} dashboard={dashboard} />
+              ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
@@ -283,18 +348,7 @@ const Index = () => {
             {instances.map((instance, index) => (
               <div key={index} className="space-y-4">
                 <GrafanaInstanceCard instance={instance} />
-                {instance.dashboardsList.length > 0 && (
-                  <div className="grid gap-4">
-                    {instance.dashboardsList
-                      .filter(dashboard =>
-                        selectedTags.length === 0 ||
-                        dashboard.tags.some(tag => selectedTags.includes(tag))
-                      )
-                      .map((dashboard, idx) => (
-                        <DashboardCard key={idx} dashboard={dashboard} />
-                      ))}
-                  </div>
-                )}
+                {renderFolderStructure(instance)}
               </div>
             ))}
           </div>
