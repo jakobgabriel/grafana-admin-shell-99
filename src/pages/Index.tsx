@@ -71,8 +71,11 @@ const Index = () => {
       // Using allorigins.win as CORS proxy with JSON response
       const corsProxy = 'https://api.allorigins.win/get?url=';
       
-      // Construct the Authorization header for the Grafana API
-      const authHeader = `Bearer ${instance.apiKey}`;
+      // For play.grafana.org, we don't need authentication
+      const headers: Record<string, string> = {};
+      if (instance.url !== 'https://play.grafana.org') {
+        headers['Authorization'] = `Bearer ${instance.apiKey}`;
+      }
       
       // Fetch folders
       const foldersUrl = `${instance.url}/api/folders`;
@@ -80,9 +83,7 @@ const Index = () => {
       console.log('Fetching folders from:', foldersUrl);
       
       const foldersResponse = await fetch(`${corsProxy}${encodedFoldersUrl}`, {
-        headers: {
-          'Authorization': authHeader
-        }
+        headers
       });
       
       if (!foldersResponse.ok) {
@@ -91,7 +92,13 @@ const Index = () => {
       
       const foldersData = await foldersResponse.json();
       console.log('Raw folders response:', foldersData);
-      const folders = JSON.parse(foldersData.contents || '[]');
+      let folders = [];
+      try {
+        folders = JSON.parse(foldersData.contents || '[]');
+      } catch (e) {
+        console.error('Error parsing folders:', e);
+        folders = [];
+      }
       console.log('Parsed folders:', folders);
 
       // Fetch dashboards
@@ -100,9 +107,7 @@ const Index = () => {
       console.log('Fetching dashboards from:', dashboardsUrl);
       
       const searchResponse = await fetch(`${corsProxy}${encodedDashboardsUrl}`, {
-        headers: {
-          'Authorization': authHeader
-        }
+        headers
       });
       
       if (!searchResponse.ok) {
@@ -111,7 +116,13 @@ const Index = () => {
       
       const dashboardsData = await searchResponse.json();
       console.log('Raw dashboards response:', dashboardsData);
-      const dashboards = JSON.parse(dashboardsData.contents || '[]');
+      let dashboards = [];
+      try {
+        dashboards = JSON.parse(dashboardsData.contents || '[]');
+      } catch (e) {
+        console.error('Error parsing dashboards:', e);
+        dashboards = [];
+      }
       console.log('Parsed dashboards:', dashboards);
 
       // Return the enriched instance data
