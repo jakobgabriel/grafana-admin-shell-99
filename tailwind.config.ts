@@ -22,7 +22,7 @@ export default {
         grafana: {
           blue: "#3274D9",
           orange: "#FF780A",
-          background: "#111217",
+          background: "#1A1F2C",
           card: "#181B1F",
           text: "#D8D9DA",
         },
