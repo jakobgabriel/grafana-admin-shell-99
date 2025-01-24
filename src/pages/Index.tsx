@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Settings, ChevronRight, ChevronDown, Search } from "lucide-react";
+import { Plus, Settings, ChevronRight, ChevronDown, Search, Folder } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AdminPanel from "@/components/AdminPanel";
 import GrafanaInstanceCard from "@/components/GrafanaInstanceCard";
@@ -157,7 +157,7 @@ const Index = () => {
     );
 
     return (
-      <div className="space-y-4 pl-4">
+      <div className="space-y-4">
         {instance.foldersList.map((folder: any) => {
           const folderDashboards = filterDashboards(
             instance.dashboardsList.filter(dashboard => dashboard.folderId === folder.id)
@@ -170,32 +170,47 @@ const Index = () => {
               key={folder.id}
               open={expandedFolders[folder.id]}
               onOpenChange={() => toggleFolder(folder.id)}
-              className="bg-grafana-background rounded-lg p-2"
+              className="bg-grafana-background rounded-lg border border-grafana-border"
             >
-              <CollapsibleTrigger className="flex items-center gap-2 w-full p-2 hover:bg-grafana-card rounded transition-colors">
+              <CollapsibleTrigger className="flex items-center gap-2 w-full p-4 hover:bg-grafana-card rounded-t transition-colors">
                 {expandedFolders[folder.id] ? (
-                  <ChevronDown className="h-4 w-4" />
+                  <ChevronDown className="h-4 w-4 text-grafana-blue" />
                 ) : (
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-4 w-4 text-grafana-blue" />
                 )}
+                <Folder className="h-4 w-4 text-grafana-blue" />
                 <span className="font-medium text-grafana-text">{folder.title}</span>
-                <span className="text-sm text-gray-500 ml-2">({folderDashboards.length} dashboards)</span>
+                <span className="text-sm text-muted-foreground ml-2">
+                  ({folderDashboards.length} {folderDashboards.length === 1 ? 'dashboard' : 'dashboards'})
+                </span>
               </CollapsibleTrigger>
-              <CollapsibleContent className="pl-6 space-y-2 mt-2">
-                {folderDashboards.map((dashboard, idx) => (
-                  <DashboardCard key={idx} dashboard={dashboard} />
-                ))}
+              <CollapsibleContent>
+                <div className="p-4 space-y-4 border-t border-grafana-border">
+                  {folderDashboards.map((dashboard, idx) => (
+                    <div key={idx} className="pl-6 border-l-2 border-grafana-blue/20">
+                      <DashboardCard dashboard={dashboard} />
+                    </div>
+                  ))}
+                </div>
               </CollapsibleContent>
             </Collapsible>
           );
         })}
 
         {generalDashboards.length > 0 && (
-          <div className="space-y-2 bg-grafana-background rounded-lg p-4">
-            <h3 className="font-medium text-grafana-text mb-4">General</h3>
-            {generalDashboards.map((dashboard, idx) => (
-              <DashboardCard key={idx} dashboard={dashboard} />
-            ))}
+          <div className="space-y-4 bg-grafana-background rounded-lg border border-grafana-border p-4">
+            <div className="flex items-center gap-2 mb-4">
+              <Folder className="h-4 w-4 text-muted-foreground" />
+              <h3 className="font-medium text-grafana-text">General</h3>
+              <span className="text-sm text-muted-foreground ml-2">
+                ({generalDashboards.length} {generalDashboards.length === 1 ? 'dashboard' : 'dashboards'})
+              </span>
+            </div>
+            <div className="space-y-4 pl-6 border-l-2 border-grafana-blue/20">
+              {generalDashboards.map((dashboard, idx) => (
+                <DashboardCard key={idx} dashboard={dashboard} />
+              ))}
+            </div>
           </div>
         )}
       </div>
