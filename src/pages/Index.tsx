@@ -4,7 +4,9 @@ import AdminPanel from "@/components/AdminPanel";
 import Header from "@/components/Header";
 import SearchBar from "@/components/SearchBar";
 import InstancesSection from "@/components/InstancesSection";
+import OverviewStats from "@/components/OverviewStats";
 import { fetchGrafanaData } from "@/utils/grafanaApi";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface GrafanaInstanceFormData {
   name: string;
@@ -193,20 +195,35 @@ const Index = () => {
         />
       </div>
 
-      <InstancesSection
-        instances={instances}
-        demoInstances={demoInstances}
-        searchQuery={searchQuery}
-        selectedTags={selectedTags}
-        expandedFolders={expandedFolders}
-        expandedInstances={expandedInstances}
-        allTags={allTags}
-        onTagSelect={handleTagSelect}
-        onFolderToggle={toggleFolder}
-        onInstanceToggle={toggleInstance}
-        onRemoveInstance={handleRemoveInstance}
-        onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
-      />
+      <Tabs defaultValue="instances" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="instances">Instances</TabsTrigger>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="instances">
+          <InstancesSection
+            instances={instances}
+            demoInstances={demoInstances}
+            searchQuery={searchQuery}
+            selectedTags={selectedTags}
+            expandedFolders={expandedFolders}
+            expandedInstances={expandedInstances}
+            allTags={allTags}
+            onTagSelect={handleTagSelect}
+            onFolderToggle={toggleFolder}
+            onInstanceToggle={toggleInstance}
+            onRemoveInstance={handleRemoveInstance}
+            onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
+          />
+        </TabsContent>
+        
+        <TabsContent value="overview">
+          <OverviewStats 
+            instances={instances.length > 0 ? instances : demoInstances} 
+          />
+        </TabsContent>
+      </Tabs>
 
       <AdminPanel
         isOpen={isAdminPanelOpen}

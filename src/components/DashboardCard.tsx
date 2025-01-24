@@ -1,7 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Link as LinkIcon } from "lucide-react";
+import { Link as LinkIcon, Code } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface Dashboard {
   title: string;
@@ -20,14 +28,31 @@ const DashboardCard = ({ dashboard }: Props) => {
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>{dashboard.title}</span>
-          <a 
-            href={dashboard.url} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-grafana-blue hover:text-blue-400"
-          >
-            <LinkIcon size={16} />
-          </a>
+          <div className="flex items-center gap-2">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-grafana-blue hover:text-blue-400">
+                  <Code size={16} />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-3xl max-h-[80vh] overflow-auto">
+                <DialogHeader>
+                  <DialogTitle>{dashboard.title} - JSON</DialogTitle>
+                </DialogHeader>
+                <pre className="bg-grafana-background p-4 rounded-lg overflow-auto">
+                  {JSON.stringify(dashboard, null, 2)}
+                </pre>
+              </DialogContent>
+            </Dialog>
+            <a 
+              href={dashboard.url} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-grafana-blue hover:text-blue-400"
+            >
+              <LinkIcon size={16} />
+            </a>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent>
