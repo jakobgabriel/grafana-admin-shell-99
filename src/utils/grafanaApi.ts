@@ -29,26 +29,22 @@ interface GrafanaInstance extends GrafanaInstanceFormData {
 }
 
 export const fetchGrafanaData = async (instance: GrafanaInstanceFormData): Promise<GrafanaInstance | null> => {
-  console.log('Fetching Grafana data for instance:', instance.name);
+  console.log('Attempting to fetch Grafana data for instance:', instance.name);
   
   try {
     // First verify the connection by fetching health status
+    console.log('Checking Grafana health status...');
     const healthResponse = await fetch(`${instance.url}/api/health`, {
       headers: {
         'Authorization': `Bearer ${instance.apiKey}`,
         'Accept': 'application/json',
-        'Access-Control-Allow-Origin': '*',
       },
-      mode: 'cors',
-      credentials: 'include'
+      mode: 'cors'
     });
 
     if (!healthResponse.ok) {
       console.error('Health check failed:', healthResponse.statusText);
-      toast.error(`Failed to connect to ${instance.name}. Please ensure:
-        1. The Grafana URL is correct and accessible
-        2. CORS is enabled on your Grafana server
-        3. The API key has correct permissions`);
+      toast.error(`Connection to ${instance.name} failed. Please check your URL and API key.`);
       return null;
     }
 
@@ -58,10 +54,8 @@ export const fetchGrafanaData = async (instance: GrafanaInstanceFormData): Promi
       headers: {
         'Authorization': `Bearer ${instance.apiKey}`,
         'Accept': 'application/json',
-        'Access-Control-Allow-Origin': '*',
       },
-      mode: 'cors',
-      credentials: 'include'
+      mode: 'cors'
     });
 
     if (!foldersResponse.ok) {
@@ -71,7 +65,7 @@ export const fetchGrafanaData = async (instance: GrafanaInstanceFormData): Promi
     }
 
     const folders: FolderData[] = await foldersResponse.json();
-    console.log('Fetched folders:', folders);
+    console.log('Successfully fetched folders:', folders);
 
     // Fetch dashboards
     console.log('Fetching dashboards...');
@@ -79,10 +73,8 @@ export const fetchGrafanaData = async (instance: GrafanaInstanceFormData): Promi
       headers: {
         'Authorization': `Bearer ${instance.apiKey}`,
         'Accept': 'application/json',
-        'Access-Control-Allow-Origin': '*',
       },
-      mode: 'cors',
-      credentials: 'include'
+      mode: 'cors'
     });
 
     if (!searchResponse.ok) {
@@ -92,19 +84,19 @@ export const fetchGrafanaData = async (instance: GrafanaInstanceFormData): Promi
     }
 
     const dashboardsSearch = await searchResponse.json();
-    console.log('Fetched dashboards:', dashboardsSearch);
+    console.log('Successfully fetched dashboards:', dashboardsSearch);
 
     // Transform dashboard data to match our interface
     const dashboards: DashboardData[] = dashboardsSearch.map((dash: any) => ({
       title: dash.title,
       description: dash.description || 'No description available',
-      url: dash.url,
+      url: `${instance.url}${dash.url}`,
       tags: dash.tags || [],
       folderId: dash.folderId?.toString() || "0"
     }));
 
     // Return the complete instance data
-    return {
+    const result: GrafanaInstance = {
       ...instance,
       folders: folders.length,
       dashboards: dashboards.length,
@@ -116,12 +108,12 @@ export const fetchGrafanaData = async (instance: GrafanaInstanceFormData): Promi
       dashboardsList: dashboards
     };
 
+    console.log('Successfully processed Grafana instance data:', result);
+    return result;
+
   } catch (error) {
     console.error('Error fetching Grafana data:', error);
-    toast.error(`Unable to connect to ${instance.name}. Please verify:
-      1. The Grafana server is accessible
-      2. CORS is properly configured
-      3. The API key is valid`);
+    toast.error(`Unable to connect to ${instance.name}. Please verify the URL is accessible and CORS is enabled on your Grafana server.`);
     return null;
   }
 };
