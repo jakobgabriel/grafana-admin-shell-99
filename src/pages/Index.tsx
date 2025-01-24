@@ -7,6 +7,7 @@ import AdminPanel from "@/components/AdminPanel";
 import TagFilter from "@/components/TagFilter";
 import WelcomeSection from "@/components/WelcomeSection";
 import DemoInstances from "@/components/DemoInstances";
+import { fetchGrafanaData } from "@/utils/grafanaApi";
 
 interface GrafanaInstanceFormData {
   name: string;
@@ -109,7 +110,17 @@ const Index = () => {
   useEffect(() => {
     const savedInstances = localStorage.getItem(STORAGE_KEY);
     if (savedInstances) {
-      setInstances(JSON.parse(savedInstances));
+      const parsedInstances = JSON.parse(savedInstances);
+      setInstances(parsedInstances);
+      // Fetch data for each saved instance
+      parsedInstances.forEach(async (instance: GrafanaInstance) => {
+        const data = await fetchGrafanaData(instance);
+        if (data) {
+          setInstances(prev => 
+            prev.map(i => i.name === instance.name ? data : i)
+          );
+        }
+      });
     }
   }, []);
 
@@ -131,16 +142,16 @@ const Index = () => {
     }));
   };
 
-  // Extract all unique tags from demo instances
   const allTags = useMemo(() => {
     const tagsSet = new Set<string>();
-    demoInstances.forEach(instance => {
+    const allInstances = [...instances, ...demoInstances];
+    allInstances.forEach(instance => {
       instance.dashboardsList.forEach(dashboard => {
         dashboard.tags.forEach((tag: string) => tagsSet.add(tag));
       });
     });
     return Array.from(tagsSet);
-  }, []);
+  }, [instances]);
 
   const handleTagSelect = (tag: string) => {
     setSelectedTags(prev => {
@@ -151,21 +162,21 @@ const Index = () => {
     });
   };
 
-  const handleAddInstance = (instance: GrafanaInstanceFormData) => {
+  const handleAddInstance = async (instance: GrafanaInstanceFormData) => {
     console.log("Adding new instance:", instance);
-    const newInstance: GrafanaInstance = {
-      ...instance,
-      folders: 0,
-      dashboards: 0,
-      foldersList: [],
-      dashboardsList: []
-    };
     
-    setInstances(prev => [...prev, newInstance]);
-    toast({
-      title: "Instance Added",
-      description: `Successfully added ${instance.name} to your instances.`
-    });
+    // First fetch data from the Grafana instance to verify connection
+    const data = await fetchGrafanaData(instance);
+    
+    if (data) {
+      setInstances(prev => [...prev, data]);
+      toast({
+        title: "Instance Added",
+        description: `Successfully added ${instance.name} to your instances.`
+      });
+    }
+    
+    setIsAdminPanelOpen(false);
   };
 
   return (
