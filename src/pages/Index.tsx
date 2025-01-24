@@ -70,43 +70,62 @@ const Index = () => {
     try {
       // Using allorigins.win as CORS proxy with JSON response
       const corsProxy = 'https://api.allorigins.win/get?url=';
-      const headers = new Headers({
-        'Authorization': `Bearer ${instance.apiKey}`,
-        'Content-Type': 'application/json',
-      });
-
-      // Fetch folders
-      const encodedFoldersUrl = encodeURIComponent(`${instance.url}/api/folders`);
-      console.log('Fetching folders from:', `${corsProxy}${encodedFoldersUrl}`);
       
-      const foldersResponse = await fetch(`${corsProxy}${encodedFoldersUrl}`);
+      // Construct the Authorization header for the Grafana API
+      const authHeader = `Bearer ${instance.apiKey}`;
+      
+      // Fetch folders
+      const foldersUrl = `${instance.url}/api/folders`;
+      const encodedFoldersUrl = encodeURIComponent(foldersUrl);
+      console.log('Fetching folders from:', foldersUrl);
+      
+      const foldersResponse = await fetch(`${corsProxy}${encodedFoldersUrl}`, {
+        headers: {
+          'Authorization': authHeader
+        }
+      });
+      
       if (!foldersResponse.ok) {
         throw new Error(`Failed to fetch folders: ${foldersResponse.statusText}`);
       }
       
       const foldersData = await foldersResponse.json();
-      const folders = JSON.parse(foldersData.contents);
-      console.log('Fetched folders:', folders);
+      console.log('Raw folders response:', foldersData);
+      const folders = JSON.parse(foldersData.contents || '[]');
+      console.log('Parsed folders:', folders);
 
       // Fetch dashboards
-      const encodedDashboardsUrl = encodeURIComponent(`${instance.url}/api/search?type=dash-db`);
-      console.log('Fetching dashboards from:', `${corsProxy}${encodedDashboardsUrl}`);
+      const dashboardsUrl = `${instance.url}/api/search?type=dash-db`;
+      const encodedDashboardsUrl = encodeURIComponent(dashboardsUrl);
+      console.log('Fetching dashboards from:', dashboardsUrl);
       
-      const searchResponse = await fetch(`${corsProxy}${encodedDashboardsUrl}`);
+      const searchResponse = await fetch(`${corsProxy}${encodedDashboardsUrl}`, {
+        headers: {
+          'Authorization': authHeader
+        }
+      });
+      
       if (!searchResponse.ok) {
         throw new Error(`Failed to fetch dashboards: ${searchResponse.statusText}`);
       }
       
       const dashboardsData = await searchResponse.json();
-      const dashboards = JSON.parse(dashboardsData.contents);
-      console.log('Fetched dashboards:', dashboards);
+      console.log('Raw dashboards response:', dashboardsData);
+      const dashboards = JSON.parse(dashboardsData.contents || '[]');
+      console.log('Parsed dashboards:', dashboards);
 
+      // Return the enriched instance data
       return {
         ...instance,
         folders: folders.length,
         dashboards: dashboards.length,
         foldersList: folders,
-        dashboardsList: dashboards,
+        dashboardsList: dashboards.map((dashboard: any) => ({
+          title: dashboard.title,
+          description: dashboard.description || 'No description available',
+          url: `${instance.url}/d/${dashboard.uid}`,
+          tags: dashboard.tags || []
+        }))
       };
 
     } catch (error) {
@@ -151,6 +170,8 @@ const Index = () => {
   };
 
   const allTags = ["system", "monitoring", "apm", "performance"];
+
+  // ... keep existing code (render method with the same UI hierarchy)
 
   return (
     <div className="container mx-auto p-4">
@@ -227,18 +248,10 @@ const Index = () => {
                     {instance.dashboardsList
                       .filter(dashboard =>
                         selectedTags.length === 0 ||
-                        (dashboard.tags && dashboard.tags.some(tag => selectedTags.includes(tag)))
+                        dashboard.tags.some(tag => selectedTags.includes(tag))
                       )
                       .map((dashboard, idx) => (
-                        <DashboardCard
-                          key={idx}
-                          dashboard={{
-                            title: dashboard.title,
-                            description: dashboard.description || 'No description available',
-                            url: `${instance.url}/d/${dashboard.uid}`,
-                            tags: dashboard.tags || []
-                          }}
-                        />
+                        <DashboardCard key={idx} dashboard={dashboard} />
                       ))}
                   </div>
                 )}
