@@ -68,39 +68,37 @@ const Index = () => {
     console.log('Fetching data for instance:', instance.name);
     
     try {
-      // Using allorigins.win as CORS proxy
-      const corsProxy = 'https://api.allorigins.win/raw?url=';
-      const headers = {
+      // Using allorigins.win as CORS proxy with JSON response
+      const corsProxy = 'https://api.allorigins.win/get?url=';
+      const headers = new Headers({
         'Authorization': `Bearer ${instance.apiKey}`,
         'Content-Type': 'application/json',
-      };
+      });
 
       // Fetch folders
       const encodedFoldersUrl = encodeURIComponent(`${instance.url}/api/folders`);
       console.log('Fetching folders from:', `${corsProxy}${encodedFoldersUrl}`);
-      const foldersResponse = await fetch(`${corsProxy}${encodedFoldersUrl}`, {
-        headers,
-      });
       
+      const foldersResponse = await fetch(`${corsProxy}${encodedFoldersUrl}`);
       if (!foldersResponse.ok) {
         throw new Error(`Failed to fetch folders: ${foldersResponse.statusText}`);
       }
       
-      const folders = await foldersResponse.json();
+      const foldersData = await foldersResponse.json();
+      const folders = JSON.parse(foldersData.contents);
       console.log('Fetched folders:', folders);
 
       // Fetch dashboards
       const encodedDashboardsUrl = encodeURIComponent(`${instance.url}/api/search?type=dash-db`);
       console.log('Fetching dashboards from:', `${corsProxy}${encodedDashboardsUrl}`);
-      const searchResponse = await fetch(`${corsProxy}${encodedDashboardsUrl}`, {
-        headers,
-      });
       
+      const searchResponse = await fetch(`${corsProxy}${encodedDashboardsUrl}`);
       if (!searchResponse.ok) {
         throw new Error(`Failed to fetch dashboards: ${searchResponse.statusText}`);
       }
       
-      const dashboards = await searchResponse.json();
+      const dashboardsData = await searchResponse.json();
+      const dashboards = JSON.parse(dashboardsData.contents);
       console.log('Fetched dashboards:', dashboards);
 
       return {
