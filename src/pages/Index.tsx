@@ -49,11 +49,19 @@ const Index = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(instances));
   }, [instances]);
 
+  const toggleFolder = (folderId: string) => {
+    setExpandedFolders(prev => ({
+      ...prev,
+      [folderId]: !prev[folderId]
+    }));
+  };
+
   // Enhanced demo data with two instances
   const demoInstances = [
     {
       name: "Production Grafana",
       url: "https://play.grafana.org",
+      apiKey: "", // Added apiKey to match GrafanaInstance type
       folders: 3,
       dashboards: 8,
       foldersList: [
@@ -88,6 +96,7 @@ const Index = () => {
     {
       name: "Development Grafana",
       url: "https://play-dev.grafana.org",
+      apiKey: "", // Added apiKey to match GrafanaInstance type
       folders: 2,
       dashboards: 7,
       foldersList: [
