@@ -157,7 +157,7 @@ const Index = () => {
     );
 
     return (
-      <div className="space-y-4">
+      <div className="space-y-2">
         {instance.foldersList.map((folder: any) => {
           const folderDashboards = filterDashboards(
             instance.dashboardsList.filter(dashboard => dashboard.folderId === folder.id)
@@ -170,9 +170,9 @@ const Index = () => {
               key={folder.id}
               open={expandedFolders[folder.id]}
               onOpenChange={() => toggleFolder(folder.id)}
-              className="bg-grafana-card rounded-lg border border-grafana-blue/20"
+              className="border border-grafana-blue/10 rounded-lg overflow-hidden bg-grafana-background/50"
             >
-              <CollapsibleTrigger className="flex items-center gap-2 w-full p-4">
+              <CollapsibleTrigger className="flex items-center w-full p-3 hover:bg-grafana-background/80 transition-colors">
                 <div className="flex items-center gap-2 text-grafana-blue">
                   {expandedFolders[folder.id] ? (
                     <ChevronDown className="h-4 w-4" />
@@ -181,13 +181,13 @@ const Index = () => {
                   )}
                   <Folder className="h-4 w-4" />
                 </div>
-                <span className="font-medium text-grafana-text">{folder.title}</span>
+                <span className="font-medium text-grafana-text ml-2">{folder.title}</span>
                 <span className="text-sm text-muted-foreground ml-2">
                   ({folderDashboards.length} {folderDashboards.length === 1 ? 'dashboard' : 'dashboards'})
                 </span>
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <div className="p-4 pt-0 space-y-4">
+                <div className="p-3 space-y-2 bg-grafana-background/30">
                   {folderDashboards.map((dashboard, idx) => (
                     <DashboardCard key={idx} dashboard={dashboard} />
                   ))}
@@ -198,15 +198,17 @@ const Index = () => {
         })}
 
         {generalDashboards.length > 0 && (
-          <div className="bg-grafana-card rounded-lg border border-grafana-blue/20 p-4">
-            <div className="flex items-center gap-2 mb-4">
-              <Folder className="h-4 w-4 text-grafana-blue" />
-              <span className="font-medium text-grafana-text">General</span>
+          <div className="border border-grafana-blue/10 rounded-lg overflow-hidden bg-grafana-background/50">
+            <div className="flex items-center p-3">
+              <div className="flex items-center gap-2 text-grafana-blue">
+                <Folder className="h-4 w-4" />
+              </div>
+              <span className="font-medium text-grafana-text ml-2">General</span>
               <span className="text-sm text-muted-foreground ml-2">
                 ({generalDashboards.length} {generalDashboards.length === 1 ? 'dashboard' : 'dashboards'})
               </span>
             </div>
-            <div className="space-y-4">
+            <div className="p-3 space-y-2 bg-grafana-background/30">
               {generalDashboards.map((dashboard, idx) => (
                 <DashboardCard key={idx} dashboard={dashboard} />
               ))}
