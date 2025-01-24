@@ -170,10 +170,10 @@ const Index = () => {
               key={folder.id}
               open={expandedFolders[folder.id]}
               onOpenChange={() => toggleFolder(folder.id)}
-              className="bg-grafana-card hover:bg-grafana-card/90 transition-colors rounded-lg border border-grafana-blue/20"
+              className="bg-grafana-card rounded-lg border border-grafana-blue/20"
             >
-              <CollapsibleTrigger className="flex items-center gap-2 w-full p-4 group">
-                <div className="flex items-center gap-2 text-grafana-blue group-hover:text-grafana-blue/80">
+              <CollapsibleTrigger className="flex items-center gap-2 w-full p-4">
+                <div className="flex items-center gap-2 text-grafana-blue">
                   {expandedFolders[folder.id] ? (
                     <ChevronDown className="h-4 w-4" />
                   ) : (
@@ -181,25 +181,16 @@ const Index = () => {
                   )}
                   <Folder className="h-4 w-4" />
                 </div>
-                <div className="flex-1 text-left">
-                  <span className="font-medium text-grafana-text">{folder.title}</span>
-                  <span className="text-sm text-muted-foreground ml-2">
-                    ({folderDashboards.length} {folderDashboards.length === 1 ? 'dashboard' : 'dashboards'})
-                  </span>
-                </div>
+                <span className="font-medium text-grafana-text">{folder.title}</span>
+                <span className="text-sm text-muted-foreground ml-2">
+                  ({folderDashboards.length} {folderDashboards.length === 1 ? 'dashboard' : 'dashboards'})
+                </span>
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <div className="p-4 space-y-4 border-t border-grafana-blue/10">
-                  <div className="grid gap-4">
-                    {folderDashboards.map((dashboard, idx) => (
-                      <div 
-                        key={idx} 
-                        className="relative pl-6 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[2px] before:bg-gradient-to-b before:from-grafana-blue/40 before:to-grafana-blue/10"
-                      >
-                        <DashboardCard dashboard={dashboard} />
-                      </div>
-                    ))}
-                  </div>
+                <div className="p-4 pt-0 space-y-4">
+                  {folderDashboards.map((dashboard, idx) => (
+                    <DashboardCard key={idx} dashboard={dashboard} />
+                  ))}
                 </div>
               </CollapsibleContent>
             </Collapsible>
@@ -207,24 +198,17 @@ const Index = () => {
         })}
 
         {generalDashboards.length > 0 && (
-          <div className="bg-grafana-card hover:bg-grafana-card/90 transition-colors rounded-lg border border-grafana-blue/20 p-4">
-            <div className="flex items-center gap-2 mb-4 text-grafana-blue">
-              <Folder className="h-4 w-4" />
-              <div className="flex-1">
-                <h3 className="font-medium text-grafana-text">General</h3>
-                <span className="text-sm text-muted-foreground ml-2">
-                  ({generalDashboards.length} {generalDashboards.length === 1 ? 'dashboard' : 'dashboards'})
-                </span>
-              </div>
+          <div className="bg-grafana-card rounded-lg border border-grafana-blue/20 p-4">
+            <div className="flex items-center gap-2 mb-4">
+              <Folder className="h-4 w-4 text-grafana-blue" />
+              <span className="font-medium text-grafana-text">General</span>
+              <span className="text-sm text-muted-foreground ml-2">
+                ({generalDashboards.length} {generalDashboards.length === 1 ? 'dashboard' : 'dashboards'})
+              </span>
             </div>
-            <div className="grid gap-4">
+            <div className="space-y-4">
               {generalDashboards.map((dashboard, idx) => (
-                <div 
-                  key={idx} 
-                  className="relative pl-6 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[2px] before:bg-gradient-to-b before:from-grafana-blue/40 before:to-grafana-blue/10"
-                >
-                  <DashboardCard dashboard={dashboard} />
-                </div>
+                <DashboardCard key={idx} dashboard={dashboard} />
               ))}
             </div>
           </div>
