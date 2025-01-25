@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
 import AdminPanelAuth from './AdminPanelAuth';
 import AdminPanelForm from './AdminPanelForm';
+import { logUserInteraction } from "@/utils/userInteractions";
 import {
   Drawer,
   DrawerContent,
@@ -36,7 +37,13 @@ const AdminPanel = ({ isOpen, onClose, onAddInstance }: AdminPanelProps) => {
     },
   });
 
-  const handlePasswordSubmit = (password: string) => {
+  const handlePasswordSubmit = async (password: string) => {
+    await logUserInteraction({
+      event_type: 'admin_auth_attempt',
+      component: 'AdminPanel',
+      details: { success: password === ADMIN_PASSWORD }
+    });
+
     if (password === ADMIN_PASSWORD) {
       setIsAuthenticated(true);
     } else {
@@ -48,7 +55,13 @@ const AdminPanel = ({ isOpen, onClose, onAddInstance }: AdminPanelProps) => {
     }
   };
 
-  const onSubmit = (data: GrafanaInstanceFormData) => {
+  const onSubmit = async (data: GrafanaInstanceFormData) => {
+    await logUserInteraction({
+      event_type: 'add_grafana_instance',
+      component: 'AdminPanel',
+      details: { instance_name: data.name }
+    });
+
     console.log("Adding new Grafana instance:", data);
     onAddInstance(data);
     form.reset();

@@ -4,9 +4,9 @@ import AdminPanel from "@/components/AdminPanel";
 import Header from "@/components/Header";
 import SearchAndTabs from "@/components/SearchAndTabs";
 import { useGrafanaInstances } from "@/hooks/useGrafanaInstances";
-import { GrafanaInstanceFormData, GrafanaInstance } from "@/types/grafana";
+import { GrafanaInstance, GrafanaInstanceFormData } from "@/types/grafana";
+import { logUserInteraction } from "@/utils/userInteractions";
 
-// Demo data
 const demoInstances: GrafanaInstance[] = [
   {
     name: "Production Grafana",
@@ -94,14 +94,24 @@ const Index = () => {
     refreshInstance
   } = useGrafanaInstances();
 
-  const toggleFolder = (folderId: string) => {
+  const toggleFolder = async (folderId: string) => {
+    await logUserInteraction({
+      event_type: 'toggle_folder',
+      component: 'Index',
+      details: { folder_id: folderId }
+    });
     setExpandedFolders(prev => ({
       ...prev,
       [folderId]: !prev[folderId]
     }));
   };
 
-  const toggleInstance = (instanceName: string) => {
+  const toggleInstance = async (instanceName: string) => {
+    await logUserInteraction({
+      event_type: 'toggle_instance',
+      component: 'Index',
+      details: { instance_name: instanceName }
+    });
     setExpandedInstances(prev => ({
       ...prev,
       [instanceName]: !prev[instanceName]
@@ -109,6 +119,11 @@ const Index = () => {
   };
 
   const handleTagSelect = async (tag: string) => {
+    await logUserInteraction({
+      event_type: 'select_tag',
+      component: 'Index',
+      details: { tag }
+    });
     setSelectedTags(prev => {
       const newTags = prev.includes(tag) 
         ? prev.filter(t => t !== tag)
@@ -131,7 +146,13 @@ const Index = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <Header onOpenAdminPanel={() => setIsAdminPanelOpen(true)} />
+      <Header onOpenAdminPanel={() => {
+        logUserInteraction({
+          event_type: 'open_admin_panel',
+          component: 'Index'
+        });
+        setIsAdminPanelOpen(true);
+      }} />
       
       <SearchAndTabs
         searchQuery={searchQuery}
@@ -147,12 +168,24 @@ const Index = () => {
         onInstanceToggle={toggleInstance}
         onRemoveInstance={removeInstance}
         onRefreshInstance={refreshInstance}
-        onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
+        onOpenAdminPanel={() => {
+          logUserInteraction({
+            event_type: 'open_admin_panel',
+            component: 'SearchAndTabs'
+          });
+          setIsAdminPanelOpen(true);
+        }}
       />
 
       <AdminPanel
         isOpen={isAdminPanelOpen}
-        onClose={() => setIsAdminPanelOpen(false)}
+        onClose={() => {
+          logUserInteraction({
+            event_type: 'close_admin_panel',
+            component: 'Index'
+          });
+          setIsAdminPanelOpen(false);
+        }}
         onAddInstance={addInstance}
       />
     </div>

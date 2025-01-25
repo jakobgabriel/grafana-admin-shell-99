@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, Trash2 } from "lucide-react";
-import { logUserInteraction, refreshGrafanaInstance } from "@/utils/grafanaApi";
+import { logUserInteraction } from "@/utils/userInteractions";
 import { GrafanaInstance } from "@/types/grafana";
 
 interface Props {
@@ -14,16 +14,23 @@ interface Props {
 const GrafanaInstanceCard = ({ instance, onRemove, onRefresh }: Props) => {
   const handleRemove = async () => {
     if (onRemove) {
-      await logUserInteraction('remove_instance', 'GrafanaInstanceCard', { instance_name: instance.name });
+      await logUserInteraction({
+        event_type: 'remove_instance',
+        component: 'GrafanaInstanceCard',
+        details: { instance_name: instance.name }
+      });
       onRemove(instance.name);
     }
   };
 
   const handleRefresh = async () => {
-    await logUserInteraction('refresh_instance', 'GrafanaInstanceCard', { instance_name: instance.name });
-    const refreshedData = await refreshGrafanaInstance(instance);
-    if (refreshedData && onRefresh) {
-      onRefresh(refreshedData);
+    await logUserInteraction({
+      event_type: 'refresh_instance',
+      component: 'GrafanaInstanceCard',
+      details: { instance_name: instance.name }
+    });
+    if (onRefresh) {
+      onRefresh(instance);
     }
   };
 
