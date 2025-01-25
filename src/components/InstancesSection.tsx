@@ -34,6 +34,7 @@ const InstancesSection = ({
   onRefreshInstance,
   onOpenAdminPanel,
 }: InstancesSectionProps) => {
+  // Only show welcome section and demo instances if there are no real instances
   if (instances.length === 0) {
     return (
       <div className="grid gap-6">

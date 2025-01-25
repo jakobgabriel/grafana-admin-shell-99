@@ -38,7 +38,8 @@ const DemoInstances = ({
     return dashboards.filter(dashboard => {
       const searchTerms = searchQuery.toLowerCase().split(' ');
       
-      const matchesSearch = searchQuery === '' || searchTerms.every(term => 
+      // Changed to use some() instead of every() to match any term instead of all terms
+      const matchesSearch = searchQuery === '' || searchTerms.some(term => 
         dashboard.title.toLowerCase().includes(term) ||
         dashboard.description.toLowerCase().includes(term) ||
         dashboard.tags.some(tag => tag.toLowerCase().includes(term)) ||
