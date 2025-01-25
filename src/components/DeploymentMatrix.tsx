@@ -58,10 +58,9 @@ const DeploymentMatrix = ({ instances }: Props) => {
         return sortConfig.direction === 'asc' ? comparison : -comparison;
       }
 
-      // For tag-based sorting
-      const aCount = countDashboards(a, sortConfig.key);
-      const bCount = countDashboards(b, sortConfig.key);
-      const comparison = Number(aCount) - Number(bCount);
+      const aCount = Number(countDashboards(a, sortConfig.key));
+      const bCount = Number(countDashboards(b, sortConfig.key));
+      const comparison = aCount - bCount;
       return sortConfig.direction === 'asc' ? comparison : -comparison;
     });
   }, [filteredInstances, sortConfig]);
@@ -128,7 +127,7 @@ const DeploymentMatrix = ({ instances }: Props) => {
 
       <div className="rounded-md border">
         <Table>
-          <TableHeader>
+          <TableHeader className="sticky top-0 bg-white z-10">
             <TableRow>
               <TableHead 
                 className="w-[200px] cursor-pointer"
@@ -170,7 +169,9 @@ const DeploymentMatrix = ({ instances }: Props) => {
           <TableBody>
             {sortedInstances.map((instance, idx) => (
               <TableRow key={idx}>
-                <TableCell className="font-medium">{instance.name}</TableCell>
+                <TableCell className="font-medium sticky left-0 bg-white">
+                  {instance.name}
+                </TableCell>
                 {allTags.map((tag, tagIdx) => {
                   const count = countDashboards(instance, tag);
                   return (
