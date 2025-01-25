@@ -29,25 +29,24 @@ const DeploymentMatrix = ({ instances }: Props) => {
   const filteredTagCombinations = useMemo(() => {
     let filtered = tagCombinations;
     
-    // Apply search filter
-    if (searchQuery) {
-      filtered = filtered.filter(combination =>
-        combination.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-    
-    // Apply tag filter - only show combinations that contain ALL selected tags
+    // Apply tag filter first - only show combinations that contain ALL selected tags
     if (selectedTags.length > 0) {
       filtered = filtered.filter(combination => {
-        const combinationTags = combination.split(', ');
-        // Check if ALL selected tags are present in the combination
-        return selectedTags.every(tag => combinationTags.includes(tag));
+        const combinationTags = new Set(combination.split(', '));
+        return selectedTags.every(tag => combinationTags.has(tag));
       });
 
       // If no combinations match the selected tags, return empty array
       if (filtered.length === 0) {
         return [];
       }
+    }
+    
+    // Then apply search filter
+    if (searchQuery) {
+      filtered = filtered.filter(combination =>
+        combination.toLowerCase().includes(searchQuery.toLowerCase())
+      );
     }
     
     return filtered;
