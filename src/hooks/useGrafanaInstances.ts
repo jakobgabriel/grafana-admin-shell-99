@@ -50,6 +50,40 @@ export const useGrafanaInstances = () => {
     return false;
   };
 
+  const addPastedInstance = async (instance: GrafanaInstance) => {
+    try {
+      const { error } = await supabase
+        .from('grafana_instances')
+        .insert({
+          name: instance.name,
+          url: instance.url,
+          api_key: instance.api_key,
+          folders: instance.folders,
+          dashboards: instance.dashboards,
+          folders_list: instance.folders_list as Json,
+          dashboards_list: instance.dashboards_list as Json
+        });
+
+      if (error) {
+        console.error('Error saving pasted instance:', error);
+        toast.error('Failed to save pasted instance');
+        return false;
+      }
+
+      setInstances(prev => [...prev, instance]);
+      await logUserInteraction('add_pasted_instance', 'Index', { 
+        instance_name: instance.name,
+        folders_count: instance.folders,
+        dashboards_count: instance.dashboards
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Error adding pasted instance:', error);
+      return false;
+    }
+  };
+
   const removeInstance = async (name: string) => {
     const { error } = await supabase
       .from('grafana_instances')
@@ -81,6 +115,7 @@ export const useGrafanaInstances = () => {
     isLoading,
     addInstance,
     removeInstance,
-    refreshInstance
+    refreshInstance,
+    addPastedInstance
   };
 };

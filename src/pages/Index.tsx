@@ -6,6 +6,7 @@ import SearchAndTabs from "@/components/SearchAndTabs";
 import { useGrafanaInstances } from "@/hooks/useGrafanaInstances";
 import { GrafanaInstance, GrafanaInstanceFormData } from "@/types/grafana";
 import { logUserInteraction } from "@/utils/userInteractions";
+import { supabase } from "@/integrations/supabase/client";
 
 const demoInstances: GrafanaInstance[] = [
   {
@@ -91,17 +92,54 @@ const Index = () => {
     instances,
     addInstance,
     removeInstance,
-    refreshInstance
+    refreshInstance,
+    addPastedInstance
   } = useGrafanaInstances();
 
-  const handlePasteContent = async (content: any) => {
+  const handlePasteContent = async (content: any[]) => {
     console.log('Processing pasted content:', content);
-    // Here you can process the pasted content as needed
-    // For now, we'll just show a success message
-    toast({
-      title: "Content received",
-      description: `Received ${content.length} items from Grafana search API`,
-    });
+    
+    try {
+      // Group items by folder
+      const folders = content.filter(item => item.type === 'dash-folder').map(folder => ({
+        id: folder.id.toString(),
+        title: folder.title
+      }));
+
+      const dashboards = content.filter(item => item.type === 'dash-db').map(dashboard => ({
+        title: dashboard.title,
+        description: dashboard.title, // Using title as description since it's not provided in the API
+        url: dashboard.url,
+        tags: dashboard.tags,
+        folderId: dashboard.folderId?.toString() || '0'
+      }));
+
+      const newInstance: GrafanaInstance = {
+        name: `Pasted Instance ${new Date().toISOString().slice(0, 10)}`,
+        url: 'https://grafana.com', // Default URL since we don't have the actual URL
+        api_key: '',
+        folders: folders.length,
+        dashboards: dashboards.length,
+        folders_list: folders,
+        dashboards_list: dashboards
+      };
+
+      const success = await addPastedInstance(newInstance);
+      
+      if (success) {
+        toast({
+          title: "Content added successfully",
+          description: `Added ${dashboards.length} dashboards from ${folders.length} folders`,
+        });
+      }
+    } catch (error) {
+      console.error('Error processing pasted content:', error);
+      toast({
+        title: "Error processing content",
+        description: "Failed to process and store the pasted content",
+        variant: "destructive",
+      });
+    }
   };
 
   const toggleFolder = async (folderId: string) => {
@@ -144,7 +182,7 @@ const Index = () => {
 
   const allTags = React.useMemo(() => {
     const tagsSet = new Set<string>();
-    const allInstances = [...instances, ...demoInstances];
+    const allInstances = [...instances];
     allInstances.forEach(instance => {
       const dashboardsList = instance.dashboards_list || [];
       dashboardsList.forEach(dashboard => {
@@ -171,7 +209,7 @@ const Index = () => {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         instances={instances}
-        demoInstances={demoInstances}
+        demoInstances={instances.length === 0 ? demoInstances : []}
         selectedTags={selectedTags}
         expandedFolders={expandedFolders}
         expandedInstances={expandedInstances}
