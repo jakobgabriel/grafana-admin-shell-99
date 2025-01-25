@@ -87,11 +87,22 @@ const DeploymentMatrix = ({ instances }: Props) => {
         return dashCount >= dashboardRange[0] && dashCount <= dashboardRange[1];
       })
       .sort((a, b) => {
-        const aCount = a.dashboards || 0;
-        const bCount = b.dashboards || 0;
-        return sortOrder === 'asc' ? aCount - bCount : bCount - aCount;
+        // Get the total number of dashboards for each instance
+        const getTotalDashboards = (instance: GrafanaInstance) => {
+          const combinations = getTagCombinations();
+          return combinations.reduce((total, combination) => {
+            return total + countDashboards(instance, combination);
+          }, 0);
+        };
+
+        const aTotalDashboards = getTotalDashboards(a);
+        const bTotalDashboards = getTotalDashboards(b);
+
+        return sortOrder === 'asc' 
+          ? aTotalDashboards - bTotalDashboards 
+          : bTotalDashboards - aTotalDashboards;
       });
-  }, [instances, dashboardRange, sortOrder]);
+  }, [instances, dashboardRange, sortOrder, selectedTags]);
 
   const tagCombinations = getTagCombinations();
 
@@ -109,6 +120,8 @@ const DeploymentMatrix = ({ instances }: Props) => {
       setDashboardRange([values[0], values[1]]);
     }
   };
+
+  // ... keep existing code (JSX for the component remains unchanged)
 
   return (
     <div className="space-y-6">
