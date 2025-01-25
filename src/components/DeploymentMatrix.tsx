@@ -36,12 +36,18 @@ const DeploymentMatrix = ({ instances }: Props) => {
       );
     }
     
-    // Apply tag filter
+    // Apply tag filter - only show combinations that contain ALL selected tags
     if (selectedTags.length > 0) {
       filtered = filtered.filter(combination => {
         const combinationTags = combination.split(', ');
+        // Check if ALL selected tags are present in the combination
         return selectedTags.every(tag => combinationTags.includes(tag));
       });
+
+      // If no combinations match the selected tags, return empty array
+      if (filtered.length === 0) {
+        return [];
+      }
     }
     
     return filtered;
