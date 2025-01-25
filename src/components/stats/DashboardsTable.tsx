@@ -2,10 +2,10 @@ import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Link as LinkIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { DemoInstance } from "@/types/grafana";
+import { GrafanaInstance } from "@/types/grafana";
 
 interface Props {
-  instances: DemoInstance[];
+  instances: GrafanaInstance[];
 }
 
 const DashboardsTable = ({ instances }: Props) => {
@@ -14,7 +14,7 @@ const DashboardsTable = ({ instances }: Props) => {
   const getAllDashboards = () => {
     const allDashboards: Array<{ instance: string, dashboard: any }> = [];
     instances.forEach(instance => {
-      (instance.dashboardsList || []).forEach(dashboard => {
+      (instance.dashboards_list || []).forEach(dashboard => {
         allDashboards.push({
           instance: instance.name,
           dashboard

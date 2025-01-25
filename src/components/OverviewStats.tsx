@@ -1,10 +1,10 @@
 import React from 'react';
 import StatsCards from "./stats/StatsCards";
 import DashboardsTable from "./stats/DashboardsTable";
-import { DemoInstance } from "@/types/grafana";
+import { GrafanaInstance } from "@/types/grafana";
 
 interface Props {
-  instances: DemoInstance[];
+  instances: GrafanaInstance[];
 }
 
 const OverviewStats = ({ instances }: Props) => {

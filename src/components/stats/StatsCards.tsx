@@ -1,15 +1,15 @@
 import React from 'react';
 import { Database, ChartBar, Tag } from "lucide-react";
-import { DemoInstance } from "@/types/grafana";
+import { GrafanaInstance } from "@/types/grafana";
 
 interface Props {
-  instances: DemoInstance[];
+  instances: GrafanaInstance[];
 }
 
 const StatsCards = ({ instances }: Props) => {
   console.log('Rendering StatsCards with instances:', instances);
   
-  const getAllDashboards = instances.flatMap(instance => instance.dashboardsList || []);
+  const getAllDashboards = instances.flatMap(instance => instance.dashboards_list || []);
   const allTags = new Set(getAllDashboards.flatMap(dashboard => dashboard.tags || []));
 
   return (
