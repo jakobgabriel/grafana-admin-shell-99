@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ClipboardPaste } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { logUserInteraction } from "@/utils/userInteractions";
+import { useAuth } from "@/hooks/useAuth";
+import AdminPanelAuth from './AdminPanelAuth';
 
 interface GrafanaSearchItem {
   id: number;
@@ -39,7 +41,10 @@ const GrafanaPasteDialog = ({ onPasteContent }: GrafanaPasteDialogProps) => {
   const [content, setContent] = React.useState('');
   const [instanceName, setInstanceName] = React.useState('');
   const [instanceUrl, setInstanceUrl] = React.useState('');
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { toast } = useToast();
+  const { signOut } = useAuth();
 
   const validateGrafanaSearchResponse = (data: any[]): data is GrafanaSearchItem[] => {
     if (!Array.isArray(data)) return false;
@@ -52,6 +57,33 @@ const GrafanaPasteDialog = ({ onPasteContent }: GrafanaPasteDialogProps) => {
       typeof item.type === 'string' &&
       Array.isArray(item.tags)
     );
+  };
+
+  const handleClose = async () => {
+    console.log('Closing paste dialog and logging out');
+    try {
+      await signOut();
+      setIsAuthenticated(false);
+      setIsOpen(false);
+      setContent('');
+      setInstanceName('');
+      setInstanceUrl('');
+      toast({
+        title: "Logged out",
+        description: "You have been logged out successfully",
+      });
+    } catch (error) {
+      console.error('Error during logout:', error);
+      toast({
+        title: "Error",
+        description: "Failed to log out properly",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleAuthenticated = () => {
+    setIsAuthenticated(true);
   };
 
   const handlePaste = async () => {
@@ -82,7 +114,6 @@ const GrafanaPasteDialog = ({ onPasteContent }: GrafanaPasteDialogProps) => {
 
       console.log('Processing Grafana Search API content:', parsedContent);
       
-      // Transform the URLs to use the provided instance URL
       const transformedContent = parsedContent.map(item => ({
         ...item,
         url: `${instanceUrl.replace(/\/$/, '')}${item.url}`,
@@ -109,6 +140,8 @@ const GrafanaPasteDialog = ({ onPasteContent }: GrafanaPasteDialogProps) => {
         title: "Content pasted successfully",
         description: `Processed ${transformedContent.length} items from Grafana search API`,
       });
+
+      handleClose();
     } catch (error) {
       console.error('Error parsing pasted content:', error);
       await logUserInteraction({
@@ -131,68 +164,74 @@ const GrafanaPasteDialog = ({ onPasteContent }: GrafanaPasteDialogProps) => {
   };
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={(open) => open ? setIsOpen(true) : handleClose()}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="flex items-center gap-2">
+        <Button variant="outline" className="flex items-center gap-2" onClick={() => setIsOpen(true)}>
           <ClipboardPaste className="w-4 h-4" />
           Paste from API
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[625px]">
-        <DialogHeader>
-          <DialogTitle>Paste Grafana Search API Content</DialogTitle>
-          <DialogDescription>
-            Paste the JSON response from Grafana's /api/search endpoint. The content should be an array of dashboard and folder items.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <label htmlFor="instanceName" className="text-sm font-medium">Instance Name</label>
-            <Input
-              id="instanceName"
-              placeholder="Enter instance name..."
-              value={instanceName}
-              onChange={(e) => setInstanceName(e.target.value)}
-            />
-          </div>
-          <div className="grid gap-2">
-            <label htmlFor="instanceUrl" className="text-sm font-medium">Instance URL</label>
-            <Input
-              id="instanceUrl"
-              placeholder="https://your-grafana-instance.com"
-              value={instanceUrl}
-              onChange={(e) => setInstanceUrl(e.target.value)}
-            />
-          </div>
-          <div className="grid gap-2">
-            <label htmlFor="content" className="text-sm font-medium">API Response</label>
-            <Textarea
-              id="content"
-              placeholder="Paste your JSON content here..."
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              className="min-h-[200px] font-mono"
-            />
-          </div>
-          <div>
-            <pre className="text-xs bg-muted p-2 rounded mt-2 overflow-x-auto">
-              {JSON.stringify([
-                {
-                  "id": 1,
-                  "uid": "lBdLINUWk",
-                  "title": "Production Overview",
-                  "uri": "db/production-overview",
-                  "url": "/d/lBdLINUWk/production-overview",
-                  "slug": "",
-                  "type": "dash-db",
-                  "tags": ["production"],
-                  "isStarred": false
-                }
-              ], null, 2)}
-            </pre>
-          </div>
-          <Button onClick={handlePaste}>Process Content</Button>
-        </div>
+        {!isAuthenticated ? (
+          <AdminPanelAuth onAuthenticated={handleAuthenticated} />
+        ) : (
+          <>
+            <DialogHeader>
+              <DialogTitle>Paste Grafana Search API Content</DialogTitle>
+              <DialogDescription>
+                Paste the JSON response from Grafana's /api/search endpoint. The content should be an array of dashboard and folder items.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <label htmlFor="instanceName" className="text-sm font-medium">Instance Name</label>
+                <Input
+                  id="instanceName"
+                  placeholder="Enter instance name..."
+                  value={instanceName}
+                  onChange={(e) => setInstanceName(e.target.value)}
+                />
+              </div>
+              <div className="grid gap-2">
+                <label htmlFor="instanceUrl" className="text-sm font-medium">Instance URL</label>
+                <Input
+                  id="instanceUrl"
+                  placeholder="https://your-grafana-instance.com"
+                  value={instanceUrl}
+                  onChange={(e) => setInstanceUrl(e.target.value)}
+                />
+              </div>
+              <div className="grid gap-2">
+                <label htmlFor="content" className="text-sm font-medium">API Response</label>
+                <Textarea
+                  id="content"
+                  placeholder="Paste your JSON content here..."
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  className="min-h-[200px] font-mono"
+                />
+              </div>
+              <div>
+                <pre className="text-xs bg-muted p-2 rounded mt-2 overflow-x-auto">
+                  {JSON.stringify([
+                    {
+                      "id": 1,
+                      "uid": "lBdLINUWk",
+                      "title": "Production Overview",
+                      "uri": "db/production-overview",
+                      "url": "/d/lBdLINUWk/production-overview",
+                      "slug": "",
+                      "type": "dash-db",
+                      "tags": ["production"],
+                      "isStarred": false
+                    }
+                  ], null, 2)}
+                </pre>
+              </div>
+              <Button onClick={handlePaste}>Process Content</Button>
+            </div>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );
