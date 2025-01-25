@@ -11,6 +11,7 @@ interface Props {
 const SearchBar = ({ searchQuery, onSearchChange }: Props) => {
   const handleSearchChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
+    console.log('Search value changed:', value); // Add logging for debugging
     await logUserInteraction({
       event_type: 'search',
       component: 'SearchBar',
