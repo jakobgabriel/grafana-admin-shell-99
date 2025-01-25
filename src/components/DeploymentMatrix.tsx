@@ -29,11 +29,28 @@ const DeploymentMatrix = ({ instances }: Props) => {
     return Array.from(tagsSet);
   }, [instances]);
 
-  // Count dashboards for each instance and tag
-  const countDashboards = (instance: GrafanaInstance, tag: string) => {
-    return (instance.dashboards_list || []).filter(dashboard => 
-      dashboard.tags.includes(tag)
-    ).length;
+  // Get all unique tag combinations across all instances
+  const tagCombinations = useMemo(() => {
+    const combinationsSet = new Set<string>();
+    instances.forEach(instance => {
+      (instance.dashboards_list || []).forEach(dashboard => {
+        if (dashboard.tags.length > 0) {
+          const sortedTags = [...dashboard.tags].sort();
+          combinationsSet.add(sortedTags.join(', '));
+        }
+      });
+    });
+    return Array.from(combinationsSet);
+  }, [instances]);
+
+  // Count dashboards for each instance and tag combination
+  const countDashboards = (instance: GrafanaInstance, tagCombination: string) => {
+    const tagSet = new Set(tagCombination.split(', '));
+    return (instance.dashboards_list || []).filter(dashboard => {
+      const dashboardTagSet = new Set(dashboard.tags);
+      return tagSet.size === dashboardTagSet.size && 
+             Array.from(tagSet).every(tag => dashboardTagSet.has(tag));
+    }).length;
   };
 
   // Filter instances based on selected tags
@@ -48,11 +65,11 @@ const DeploymentMatrix = ({ instances }: Props) => {
     });
   }, [instances, selectedTags]);
 
-  // Sort tags based on current sort configuration
-  const sortedTags = useMemo(() => {
-    if (!sortConfig) return allTags;
+  // Sort tag combinations based on current sort configuration
+  const sortedTagCombinations = useMemo(() => {
+    if (!sortConfig) return tagCombinations;
 
-    return [...allTags].sort((a, b) => {
+    return [...tagCombinations].sort((a, b) => {
       if (sortConfig.key === 'tag') {
         const comparison = a.localeCompare(b);
         return sortConfig.direction === 'asc' ? comparison : -comparison;
@@ -69,7 +86,7 @@ const DeploymentMatrix = ({ instances }: Props) => {
       const comparison = aCount - bCount;
       return sortConfig.direction === 'asc' ? comparison : -comparison;
     });
-  }, [allTags, filteredInstances, sortConfig]);
+  }, [tagCombinations, filteredInstances, sortConfig]);
 
   const handleSort = (key: string) => {
     console.log('Handling sort for key:', key);
@@ -95,14 +112,14 @@ const DeploymentMatrix = ({ instances }: Props) => {
   // Calculate maximum dashboard count for color intensity
   const maxDashboards = useMemo(() => {
     let max = 0;
-    allTags.forEach(tag => {
+    tagCombinations.forEach(combination => {
       instances.forEach(instance => {
-        const count = countDashboards(instance, tag);
+        const count = countDashboards(instance, combination);
         max = Math.max(max, count);
       });
     });
     return max;
-  }, [instances, allTags]);
+  }, [instances, tagCombinations]);
 
   const getCellColor = (count: number) => {
     if (count === 0) return 'bg-white';
@@ -136,11 +153,11 @@ const DeploymentMatrix = ({ instances }: Props) => {
           <TableHeader className="sticky top-0 bg-white z-10">
             <TableRow>
               <TableHead 
-                className="w-[200px] cursor-pointer sticky left-0 bg-white z-20"
+                className="w-[300px] cursor-pointer sticky left-0 bg-white z-20"
                 onClick={() => handleSort('tag')}
               >
                 <div className="flex items-center">
-                  Tags
+                  Tag Combinations
                   {sortConfig?.key === 'tag' && (
                     sortConfig.direction === 'asc' ? (
                       <ArrowUp className="h-4 w-4 ml-2" />
@@ -171,15 +188,19 @@ const DeploymentMatrix = ({ instances }: Props) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedTags.map((tag, idx) => (
+            {sortedTagCombinations.map((combination, idx) => (
               <TableRow key={idx}>
                 <TableCell className="font-medium sticky left-0 bg-white z-10">
-                  <span className="inline-block bg-grafana-accent/10 text-grafana-accent px-2 py-1 rounded-full text-sm">
-                    {tag}
-                  </span>
+                  <div className="flex flex-wrap gap-1">
+                    {combination.split(', ').map((tag, tagIdx) => (
+                      <span key={tagIdx} className="inline-block bg-grafana-accent/10 text-grafana-accent px-2 py-1 rounded-full text-sm">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
                 </TableCell>
                 {filteredInstances.map((instance, instanceIdx) => {
-                  const count = countDashboards(instance, tag);
+                  const count = countDashboards(instance, combination);
                   return (
                     <TableCell 
                       key={instanceIdx}
