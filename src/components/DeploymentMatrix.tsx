@@ -14,15 +14,19 @@ interface Props {
 const DeploymentMatrix = ({ instances }: Props) => {
   console.log('Rendering DeploymentMatrix with instances:', instances);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  const [sortedCombination, setSortedCombination] = useState<string | null>(null);
-
-  // Calculate max dashboards for slider range
+  const [sortConfig, setSortConfig] = useState<{
+    combination: string | null;
+    direction: 'asc' | 'desc';
+  }>({
+    combination: null,
+    direction: 'desc'
+  });
+  
+  // Initialize dashboard range with full range
   const maxDashboards = useMemo(() => {
     return Math.max(...instances.map(instance => instance.dashboards || 0));
   }, [instances]);
-
-  // Initialize dashboard range with full range
+  
   const [dashboardRange, setDashboardRange] = useState<[number, number]>([0, maxDashboards]);
 
   // Get all unique tags across all instances
@@ -67,16 +71,16 @@ const DeploymentMatrix = ({ instances }: Props) => {
         return dashCount >= dashboardRange[0] && dashCount <= dashboardRange[1];
       })
       .sort((a, b) => {
-        if (!sortedCombination) return 0;
+        if (!sortConfig.combination) return 0;
         
-        const aCount = countDashboards(a, sortedCombination);
-        const bCount = countDashboards(b, sortedCombination);
+        const aCount = countDashboards(a, sortConfig.combination);
+        const bCount = countDashboards(b, sortConfig.combination);
         
-        return sortOrder === 'asc' 
+        return sortConfig.direction === 'asc' 
           ? aCount - bCount 
           : bCount - aCount;
       });
-  }, [instances, dashboardRange, sortOrder, sortedCombination, selectedTags]);
+  }, [instances, dashboardRange, sortConfig, selectedTags]);
 
   const maxTagDashboards = useMemo(() => {
     let max = 0;
@@ -90,7 +94,6 @@ const DeploymentMatrix = ({ instances }: Props) => {
     return max;
   }, [instances, selectedTags]);
 
-  // Calculate cell background color based on count (heatmap)
   const getCellColor = (count: number) => {
     if (count === 0) return 'bg-white';
     const intensity = Math.min((count / maxTagDashboards) * 100, 100);
@@ -113,12 +116,10 @@ const DeploymentMatrix = ({ instances }: Props) => {
   };
 
   const handleSort = (combination: string) => {
-    if (sortedCombination === combination) {
-      setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortedCombination(combination);
-      setSortOrder('desc');
-    }
+    setSortConfig(prev => ({
+      combination,
+      direction: prev.combination === combination && prev.direction === 'desc' ? 'asc' : 'desc'
+    }));
   };
 
   const tagCombinations = getTagCombinations();
@@ -195,8 +196,8 @@ const DeploymentMatrix = ({ instances }: Props) => {
                   onClick={() => handleSort(combination)}
                 >
                   <div className="flex items-center">
-                    {sortedCombination === combination && (
-                      sortOrder === 'asc' ? (
+                    {sortConfig.combination === combination && (
+                      sortConfig.direction === 'asc' ? (
                         <ArrowUp className="h-4 w-4 mr-2" />
                       ) : (
                         <ArrowDown className="h-4 w-4 mr-2" />
