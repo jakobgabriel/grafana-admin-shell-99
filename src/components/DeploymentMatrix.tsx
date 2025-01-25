@@ -14,7 +14,7 @@ interface Props {
 const DeploymentMatrix = ({ instances }: Props) => {
   console.log('Rendering DeploymentMatrix with instances:', instances);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortField, setSortField] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   
   // Initialize dashboard range with full range
@@ -60,22 +60,29 @@ const DeploymentMatrix = ({ instances }: Props) => {
 
   // Filter and sort instances
   const filteredInstances = useMemo(() => {
-    return instances
+    console.log('Sorting instances with field:', sortField, 'direction:', sortDirection);
+    return [...instances]
       .filter(instance => {
         const dashCount = instance.dashboards || 0;
         return dashCount >= dashboardRange[0] && dashCount <= dashboardRange[1];
       })
       .sort((a, b) => {
-        if (!sortColumn) return 0;
+        if (!sortField) return 0;
         
-        const aCount = countDashboards(a, sortColumn);
-        const bCount = countDashboards(b, sortColumn);
+        if (sortField === 'name') {
+          return sortDirection === 'asc' 
+            ? a.name.localeCompare(b.name)
+            : b.name.localeCompare(a.name);
+        }
+        
+        const aCount = countDashboards(a, sortField);
+        const bCount = countDashboards(b, sortField);
         
         return sortDirection === 'asc' 
           ? aCount - bCount 
           : bCount - aCount;
       });
-  }, [instances, dashboardRange, sortColumn, sortDirection, selectedTags]);
+  }, [instances, dashboardRange, sortField, sortDirection, selectedTags]);
 
   const maxTagDashboards = useMemo(() => {
     let max = 0;
@@ -109,11 +116,12 @@ const DeploymentMatrix = ({ instances }: Props) => {
     }
   };
 
-  const handleSort = (combination: string) => {
-    if (sortColumn === combination) {
+  const handleSort = (field: string) => {
+    console.log('Handling sort for field:', field);
+    if (sortField === field) {
       setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
     } else {
-      setSortColumn(combination);
+      setSortField(field);
       setSortDirection('asc');
     }
   };
@@ -146,9 +154,22 @@ const DeploymentMatrix = ({ instances }: Props) => {
                 </Popover>
               </TableHead>
               {filteredInstances.map((instance, idx) => (
-                <TableHead key={idx} className="min-w-[150px]">
+                <TableHead 
+                  key={idx} 
+                  className="min-w-[150px] cursor-pointer hover:bg-gray-50"
+                  onClick={() => handleSort('name')}
+                >
                   <div className="flex items-center justify-between">
-                    <span>{instance.name}</span>
+                    <div className="flex items-center">
+                      <span>{instance.name}</span>
+                      {sortField === 'name' && (
+                        sortDirection === 'asc' ? (
+                          <ArrowUp className="h-4 w-4 ml-2" />
+                        ) : (
+                          <ArrowDown className="h-4 w-4 ml-2" />
+                        )
+                      )}
+                    </div>
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -192,7 +213,7 @@ const DeploymentMatrix = ({ instances }: Props) => {
                   onClick={() => handleSort(combination)}
                 >
                   <div className="flex items-center">
-                    {sortColumn === combination && (
+                    {sortField === combination && (
                       sortDirection === 'asc' ? (
                         <ArrowUp className="h-4 w-4 mr-2" />
                       ) : (
