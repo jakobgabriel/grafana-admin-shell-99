@@ -5,7 +5,7 @@ import Header from "@/components/Header";
 import SearchAndTabs from "@/components/SearchAndTabs";
 import { fetchGrafanaData, logUserInteraction } from "@/utils/grafanaApi";
 import { supabase } from "@/integrations/supabase/client";
-import { GrafanaInstance, GrafanaInstanceFormData } from "@/types/grafana";
+import { GrafanaInstance, GrafanaInstanceFormData, FolderData, DashboardData } from "@/types/grafana";
 
 const STORAGE_KEY = 'grafana-instances';
 
@@ -107,13 +107,14 @@ const Index = () => {
       }
 
       if (data && data.length > 0) {
-        // Transform the data to ensure folders_list and dashboards_list are arrays
+        // Transform the data to ensure proper typing of folders_list and dashboards_list
         const transformedData = data.map(instance => ({
           ...instance,
-          folders_list: Array.isArray(instance.folders_list) ? instance.folders_list : [],
-          dashboards_list: Array.isArray(instance.dashboards_list) ? instance.dashboards_list : []
-        }));
-        setInstances(transformedData as GrafanaInstance[]);
+          folders_list: (instance.folders_list as FolderData[]) || [],
+          dashboards_list: (instance.dashboards_list as DashboardData[]) || []
+        })) as GrafanaInstance[];
+
+        setInstances(transformedData);
         await logUserInteraction('load_instances', 'Index', { count: data.length });
       }
     };
@@ -141,7 +142,7 @@ const Index = () => {
     const tagsSet = new Set<string>();
     const allInstances = [...instances, ...demoInstances];
     allInstances.forEach(instance => {
-      const dashboardsList = Array.isArray(instance.dashboards_list) ? instance.dashboards_list : [];
+      const dashboardsList = instance.dashboards_list || [];
       dashboardsList.forEach(dashboard => {
         dashboard.tags.forEach(tag => tagsSet.add(tag));
       });
