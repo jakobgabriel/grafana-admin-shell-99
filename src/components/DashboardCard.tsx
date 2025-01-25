@@ -26,10 +26,10 @@ const DashboardCard = ({ dashboard }: Props) => {
   console.log('Rendering dashboard card for:', dashboard.title);
   
   return (
-    <Card className="bg-grafana-card text-grafana-text hover:shadow-xl transition-all duration-200 max-w-2xl border-grafana-accent/30">
+    <Card className="border hover:shadow-lg transition-all duration-200 max-w-2xl">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <span className="text-grafana-text font-semibold">{dashboard.title}</span>
+          <span className="font-semibold text-black">{dashboard.title}</span>
           <div className="flex items-center gap-2">
             <Dialog>
               <DialogTrigger asChild>
@@ -41,11 +41,11 @@ const DashboardCard = ({ dashboard }: Props) => {
                   <Code size={16} />
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-3xl max-h-[80vh] overflow-auto bg-grafana-background border-grafana-accent/30">
+              <DialogContent className="max-w-3xl max-h-[80vh] overflow-auto bg-white">
                 <DialogHeader>
-                  <DialogTitle className="text-grafana-text">{dashboard.title} - Configuration</DialogTitle>
+                  <DialogTitle className="text-black">{dashboard.title} - Configuration</DialogTitle>
                 </DialogHeader>
-                <pre className="bg-grafana-card p-4 rounded-lg overflow-auto whitespace-pre-wrap text-grafana-text">
+                <pre className="bg-gray-50 p-4 rounded-lg overflow-auto whitespace-pre-wrap text-black">
                   {JSON.stringify(dashboard, null, 2)}
                 </pre>
               </DialogContent>
@@ -62,13 +62,13 @@ const DashboardCard = ({ dashboard }: Props) => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-sm mb-4 text-grafana-text/90">{dashboard.description}</p>
+        <p className="text-sm mb-4 text-black">{dashboard.description}</p>
         <div className="flex flex-wrap gap-2">
           {dashboard.tags.map((tag) => (
             <Badge 
               key={tag} 
               variant="secondary" 
-              className="text-xs bg-grafana-accent/20 text-grafana-text hover:bg-grafana-accent/30"
+              className="text-xs bg-grafana-accent text-white hover:bg-grafana-accent/90"
             >
               {tag}
             </Badge>
