@@ -6,14 +6,7 @@ import { logUserInteraction } from "@/utils/userInteractions";
 import { GrafanaInstance } from "@/types/grafana";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import AdminPanelAuth from "./AdminPanelAuth";
+import DeleteInstanceDialog from "./DeleteInstanceDialog";
 
 interface Props {
   instance: GrafanaInstance;
@@ -24,12 +17,12 @@ interface Props {
 const GrafanaInstanceCard = ({ instance, onRemove, onRefresh }: Props) => {
   const { isAdmin } = useAuth();
   const { toast } = useToast();
-  const [showAuthDialog, setShowAuthDialog] = React.useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
 
   const handleRemove = async () => {
     if (!isAdmin) {
       console.log('Unauthorized attempt to remove instance');
-      setShowAuthDialog(true);
+      setShowDeleteDialog(true);
       return;
     }
 
@@ -59,7 +52,7 @@ const GrafanaInstanceCard = ({ instance, onRemove, onRefresh }: Props) => {
   };
 
   const handleAuthenticated = () => {
-    setShowAuthDialog(false);
+    setShowDeleteDialog(false);
     if (onRemove) {
       onRemove(instance.name);
     }
@@ -102,17 +95,11 @@ const GrafanaInstanceCard = ({ instance, onRemove, onRefresh }: Props) => {
         </CardContent>
       </Card>
 
-      <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Instance</DialogTitle>
-            <DialogDescription>
-              Please authenticate as an admin to delete this instance
-            </DialogDescription>
-          </DialogHeader>
-          <AdminPanelAuth onAuthenticated={handleAuthenticated} />
-        </DialogContent>
-      </Dialog>
+      <DeleteInstanceDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onAuthenticated={handleAuthenticated}
+      />
     </>
   );
 };
