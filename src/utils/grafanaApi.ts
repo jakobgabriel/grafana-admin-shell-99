@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { GrafanaInstance, GrafanaInstanceFormData, DashboardData, FolderData } from "@/types/grafana";
+import { Json } from "@/integrations/supabase/types";
 
 interface GrafanaSearchItem {
   id: number;
@@ -102,20 +103,21 @@ export const fetchGrafanaData = async (instance: GrafanaInstanceFormData) => {
 
     const { folders, dashboards } = await processSearchResults(instance, searchResults);
 
-    const result = {
+    // Convert the complex types to JSON-compatible format
+    const supabaseData = {
       name: instance.name,
       url: instance.url,
       api_key: instance.apiKey,
       folders: folders.length,
       dashboards: dashboards.length,
-      folders_list: folders,
-      dashboards_list: dashboards
+      folders_list: folders as Json,
+      dashboards_list: dashboards as Json
     };
 
     // Save to Supabase
     const { error } = await supabase
       .from('grafana_instances')
-      .upsert([result]);
+      .upsert(supabaseData);
 
     if (error) {
       console.error('Error saving to Supabase:', error);
@@ -129,8 +131,8 @@ export const fetchGrafanaData = async (instance: GrafanaInstanceFormData) => {
       dashboards_count: dashboards.length
     });
 
-    console.log('Successfully processed Grafana instance data:', result);
-    return result as GrafanaInstance;
+    console.log('Successfully processed Grafana instance data:', supabaseData);
+    return supabaseData as GrafanaInstance;
 
   } catch (error) {
     console.error('Error fetching Grafana data:', error);
