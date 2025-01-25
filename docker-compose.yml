@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   app:
     build:
@@ -16,7 +14,7 @@ services:
       - grafana-network
 
   supabase:
-    image: supabase/supabase-local:latest
+    image: supabase/studio:latest
     ports:
       - "54321:54321"  # REST API
       - "54322:54322"  # Studio
