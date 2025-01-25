@@ -1,49 +1,49 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   DrawerHeader,
   DrawerTitle,
   DrawerDescription,
 } from "@/components/ui/drawer";
+import { useAuth } from "@/hooks/useAuth";
+import { Loader2 } from "lucide-react";
 
 interface AdminPanelAuthProps {
-  onSubmit: (password: string) => void;
+  onAuthenticated: () => void;
 }
 
-const AdminPanelAuth = ({ onSubmit }: AdminPanelAuthProps) => {
-  const [password, setPassword] = useState("");
+const AdminPanelAuth = ({ onAuthenticated }: AdminPanelAuthProps) => {
+  const { isAdmin, isLoading, signIn } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(password);
-    setPassword("");
-  };
+  React.useEffect(() => {
+    if (isAdmin) {
+      onAuthenticated();
+    }
+  }, [isAdmin, onAuthenticated]);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <>
       <DrawerHeader>
         <DrawerTitle>Admin Authentication Required</DrawerTitle>
         <DrawerDescription>
-          Please enter the admin password to continue
+          Please sign in with your Google account to access the admin panel
         </DrawerDescription>
       </DrawerHeader>
       <div className="p-4">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-medium">
-              Password
-            </label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter admin password"
-            />
-          </div>
-          <Button type="submit">Login</Button>
-        </form>
+        <Button 
+          onClick={signIn}
+          className="w-full"
+        >
+          Sign in with Google
+        </Button>
       </div>
     </>
   );

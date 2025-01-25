@@ -8,6 +8,7 @@ import {
   Drawer,
   DrawerContent,
 } from "@/components/ui/drawer";
+import { useAuth } from "@/hooks/useAuth";
 
 interface GrafanaInstanceFormData {
   name: string;
@@ -22,11 +23,10 @@ interface AdminPanelProps {
   onAddInstance: (instance: GrafanaInstanceFormData) => void;
 }
 
-const ADMIN_PASSWORD = "grafana123"; // In a real app, this should be stored securely
-
 const AdminPanel = ({ isOpen, onClose, onAddInstance }: AdminPanelProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { toast } = useToast();
+  const { isAdmin } = useAuth();
   
   const form = useForm<GrafanaInstanceFormData>({
     defaultValues: {
@@ -37,25 +37,16 @@ const AdminPanel = ({ isOpen, onClose, onAddInstance }: AdminPanelProps) => {
     },
   });
 
-  const handlePasswordSubmit = async (password: string) => {
-    await logUserInteraction({
-      event_type: 'admin_auth_attempt',
-      component: 'AdminPanel',
-      details: { success: password === ADMIN_PASSWORD }
-    });
-
-    if (password === ADMIN_PASSWORD) {
-      setIsAuthenticated(true);
-    } else {
+  const onSubmit = async (data: GrafanaInstanceFormData) => {
+    if (!isAdmin) {
       toast({
-        title: "Invalid Password",
-        description: "Please enter the correct password to access admin panel",
+        title: "Unauthorized",
+        description: "You must be an admin to perform this action",
         variant: "destructive",
       });
+      return;
     }
-  };
 
-  const onSubmit = async (data: GrafanaInstanceFormData) => {
     await logUserInteraction({
       event_type: 'add_grafana_instance',
       component: 'AdminPanel',
@@ -72,7 +63,7 @@ const AdminPanel = ({ isOpen, onClose, onAddInstance }: AdminPanelProps) => {
     <Drawer open={isOpen} onOpenChange={onClose}>
       <DrawerContent>
         {!isAuthenticated ? (
-          <AdminPanelAuth onSubmit={handlePasswordSubmit} />
+          <AdminPanelAuth onAuthenticated={() => setIsAuthenticated(true)} />
         ) : (
           <AdminPanelForm form={form} onSubmit={onSubmit} onClose={onClose} />
         )}
