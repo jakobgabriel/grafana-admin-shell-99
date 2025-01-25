@@ -6,7 +6,8 @@ import {
   getAllTags, 
   getTagCombinations, 
   filterInstances, 
-  getMaxDashboards 
+  getMaxDashboards,
+  countDashboards 
 } from '@/utils/matrixUtils';
 
 interface Props {
