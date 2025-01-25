@@ -3,7 +3,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { GrafanaInstance } from "@/types/grafana";
 import SearchableTagFilter from './SearchableTagFilter';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Filter, SlidersHorizontal, List, ChevronUp, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   instances: GrafanaInstance[];
@@ -12,9 +15,12 @@ interface Props {
 const DeploymentMatrix = ({ instances }: Props) => {
   console.log('Rendering DeploymentMatrix with instances:', instances);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [minDashboards, setMinDashboards] = useState<string>('');
-  const [maxDashboards, setMaxDashboards] = useState<string>('');
+  const [dashboardRange, setDashboardRange] = useState<number[]>([0, 1000]);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  const maxDashboards = useMemo(() => {
+    return Math.max(...instances.map(instance => instance.dashboards || 0));
+  }, [instances]);
 
   // Get all unique tags across all instances
   const allTags = useMemo(() => {
@@ -56,15 +62,13 @@ const DeploymentMatrix = ({ instances }: Props) => {
     return instances
       .filter(instance => {
         const totalDashboards = instance.dashboards || 0;
-        const min = minDashboards ? parseInt(minDashboards) : -Infinity;
-        const max = maxDashboards ? parseInt(maxDashboards) : Infinity;
-        return totalDashboards >= min && totalDashboards <= max;
+        return totalDashboards >= dashboardRange[0] && totalDashboards <= dashboardRange[1];
       })
       .sort((a, b) => {
         const diff = (a.dashboards || 0) - (b.dashboards || 0);
         return sortOrder === 'asc' ? diff : -diff;
       });
-  }, [instances, minDashboards, maxDashboards, sortOrder]);
+  }, [instances, dashboardRange, sortOrder]);
 
   const tagCombinations = getTagCombinations();
 
@@ -80,66 +84,71 @@ const DeploymentMatrix = ({ instances }: Props) => {
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-grafana-text">Deployment Matrix</h2>
       
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Filter Tag Combinations</h3>
-          <SearchableTagFilter
-            tags={allTags}
-            selectedTags={selectedTags}
-            onTagSelect={handleTagSelect}
-          />
-        </div>
-
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Filter Instances</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm text-muted-foreground">Min Dashboards</label>
-              <Input
-                type="number"
-                value={minDashboards}
-                onChange={(e) => setMinDashboards(e.target.value)}
-                placeholder="Min"
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <label className="text-sm text-muted-foreground">Max Dashboards</label>
-              <Input
-                type="number"
-                value={maxDashboards}
-                onChange={(e) => setMaxDashboards(e.target.value)}
-                placeholder="Max"
-                className="mt-1"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="text-sm text-muted-foreground">Sort Order</label>
-            <Select
-              value={sortOrder}
-              onValueChange={(value: 'asc' | 'desc') => setSortOrder(value)}
-            >
-              <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Sort by dashboard count" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="desc">Most Dashboards First</SelectItem>
-                <SelectItem value="asc">Least Dashboards First</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </div>
-
       <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[200px]">Tag Combination</TableHead>
+              <TableHead className="w-[200px]">
+                Tag Combination
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 ml-2">
+                      <List className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80">
+                    <SearchableTagFilter
+                      tags={allTags}
+                      selectedTags={selectedTags}
+                      onTagSelect={handleTagSelect}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </TableHead>
               {filteredInstances.map((instance, idx) => (
-                <TableHead key={idx}>
-                  {instance.name}
+                <TableHead key={idx} className="min-w-[150px]">
+                  <div className="flex items-center justify-between">
+                    <span>{instance.name}</span>
+                    <div className="flex items-center gap-1">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <SlidersHorizontal className="h-4 w-4" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80">
+                          <div className="space-y-4">
+                            <div>
+                              <label className="text-sm text-muted-foreground">Dashboard Count Range</label>
+                              <Slider
+                                value={dashboardRange}
+                                onValueChange={setDashboardRange}
+                                max={maxDashboards}
+                                step={1}
+                                className="mt-2"
+                              />
+                              <div className="flex justify-between mt-1 text-xs text-muted-foreground">
+                                <span>{dashboardRange[0]}</span>
+                                <span>{dashboardRange[1]}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+                      >
+                        {sortOrder === 'asc' ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
                   <div className="text-xs text-muted-foreground">
                     {instance.dashboards || 0} dashboards
                   </div>
