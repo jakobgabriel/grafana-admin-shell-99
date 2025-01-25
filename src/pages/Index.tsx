@@ -94,6 +94,16 @@ const Index = () => {
     refreshInstance
   } = useGrafanaInstances();
 
+  const handlePasteContent = async (content: any) => {
+    console.log('Processing pasted content:', content);
+    // Here you can process the pasted content as needed
+    // For now, we'll just show a success message
+    toast({
+      title: "Content received",
+      description: `Received ${content.length} items from Grafana search API`,
+    });
+  };
+
   const toggleFolder = async (folderId: string) => {
     await logUserInteraction({
       event_type: 'toggle_folder',
@@ -146,13 +156,16 @@ const Index = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <Header onOpenAdminPanel={() => {
-        logUserInteraction({
-          event_type: 'open_admin_panel',
-          component: 'Index'
-        });
-        setIsAdminPanelOpen(true);
-      }} />
+      <Header 
+        onOpenAdminPanel={() => {
+          logUserInteraction({
+            event_type: 'open_admin_panel',
+            component: 'Index'
+          });
+          setIsAdminPanelOpen(true);
+        }}
+        onPasteContent={handlePasteContent}
+      />
       
       <SearchAndTabs
         searchQuery={searchQuery}

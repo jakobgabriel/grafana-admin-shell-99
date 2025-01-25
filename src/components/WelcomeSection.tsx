@@ -1,12 +1,14 @@
 import React from 'react';
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import GrafanaPasteDialog from './GrafanaPasteDialog';
 
 interface Props {
   onOpenAdminPanel: () => void;
+  onPasteContent?: (content: any) => void;
 }
 
-const WelcomeSection = ({ onOpenAdminPanel }: Props) => {
+const WelcomeSection = ({ onOpenAdminPanel, onPasteContent }: Props) => {
   return (
     <div className="text-center p-8 border-2 border-dashed rounded-lg">
       <h2 className="text-xl font-semibold mb-4">Welcome to Grafana Dashboard Explorer</h2>
@@ -21,6 +23,9 @@ const WelcomeSection = ({ onOpenAdminPanel }: Props) => {
           <Plus className="w-4 h-4" />
           Add Grafana Instance
         </Button>
+        {onPasteContent && (
+          <GrafanaPasteDialog onPasteContent={onPasteContent} />
+        )}
       </div>
     </div>
   );
