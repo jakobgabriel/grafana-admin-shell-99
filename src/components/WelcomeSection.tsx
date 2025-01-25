@@ -2,6 +2,7 @@ import React from 'react';
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import GrafanaPasteDialog from './GrafanaPasteDialog';
+import InfoDialog from './InfoDialog';
 
 interface Props {
   onOpenAdminPanel: () => void;
@@ -26,6 +27,7 @@ const WelcomeSection = ({ onOpenAdminPanel, onPasteContent }: Props) => {
         {onPasteContent && (
           <GrafanaPasteDialog onPasteContent={onPasteContent} />
         )}
+        <InfoDialog />
       </div>
     </div>
   );
