@@ -76,7 +76,7 @@ const MatrixTable = ({
                 return (
                   <TableCell 
                     key={instanceIdx}
-                    className={`${getCellColor(count, maxDashboards)} transition-colors duration-200`}
+                    className={`${getCellColor(count, maxDashboards)} transition-colors duration-200 text-center font-medium`}
                   >
                     {count}
                   </TableCell>

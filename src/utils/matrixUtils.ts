@@ -56,6 +56,16 @@ export const getMaxDashboards = (instances: GrafanaInstance[], tagCombinations: 
 
 export const getCellColor = (count: number, maxDashboards: number): string => {
   if (count === 0) return 'bg-white';
-  const intensity = Math.min((count / maxDashboards) * 100, 100);
-  return `bg-grafana-accent/${Math.round(intensity)}`;
+  
+  // Calculate percentage of max value
+  const percentage = (count / maxDashboards) * 100;
+  
+  // Orange to green gradient based on percentage
+  if (percentage <= 33) {
+    return 'bg-grafana-orange/30';
+  } else if (percentage <= 66) {
+    return 'bg-grafana-orange/60';
+  } else {
+    return 'bg-green-500/60';
+  }
 };
