@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Link as LinkIcon, ArrowUpDown } from "lucide-react";
+import { Link as LinkIcon, ArrowUp, ArrowDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { GrafanaInstance } from "@/types/grafana";
 
@@ -82,13 +82,6 @@ const DashboardsTable = ({ instances }: Props) => {
     });
   };
 
-  const getSortIcon = (columnKey: string) => {
-    if (!sortConfig || sortConfig.key !== columnKey) {
-      return <ArrowUpDown className="ml-2 h-4 w-4" />;
-    }
-    return <ArrowUpDown className="ml-2 h-4 w-4 text-grafana-accent" />;
-  };
-
   const dashboards = sortData(getAllDashboards());
 
   return (
@@ -99,25 +92,61 @@ const DashboardsTable = ({ instances }: Props) => {
             className="cursor-pointer hover:bg-muted/50 transition-colors"
             onClick={() => requestSort('instance')}
           >
-            Instance {getSortIcon('instance')}
+            <div className="flex items-center">
+              Instance
+              {sortConfig?.key === 'instance' && (
+                sortConfig.direction === 'asc' ? (
+                  <ArrowUp className="h-4 w-4 ml-2" />
+                ) : (
+                  <ArrowDown className="h-4 w-4 ml-2" />
+                )
+              )}
+            </div>
           </TableHead>
           <TableHead 
             className="cursor-pointer hover:bg-muted/50 transition-colors"
             onClick={() => requestSort('dashboard')}
           >
-            Dashboard {getSortIcon('dashboard')}
+            <div className="flex items-center">
+              Dashboard
+              {sortConfig?.key === 'dashboard' && (
+                sortConfig.direction === 'asc' ? (
+                  <ArrowUp className="h-4 w-4 ml-2" />
+                ) : (
+                  <ArrowDown className="h-4 w-4 ml-2" />
+                )
+              )}
+            </div>
           </TableHead>
           <TableHead 
             className="cursor-pointer hover:bg-muted/50 transition-colors"
             onClick={() => requestSort('description')}
           >
-            Description {getSortIcon('description')}
+            <div className="flex items-center">
+              Description
+              {sortConfig?.key === 'description' && (
+                sortConfig.direction === 'asc' ? (
+                  <ArrowUp className="h-4 w-4 ml-2" />
+                ) : (
+                  <ArrowDown className="h-4 w-4 ml-2" />
+                )
+              )}
+            </div>
           </TableHead>
           <TableHead 
             className="cursor-pointer hover:bg-muted/50 transition-colors"
             onClick={() => requestSort('tags')}
           >
-            Tags {getSortIcon('tags')}
+            <div className="flex items-center">
+              Tags
+              {sortConfig?.key === 'tags' && (
+                sortConfig.direction === 'asc' ? (
+                  <ArrowUp className="h-4 w-4 ml-2" />
+                ) : (
+                  <ArrowDown className="h-4 w-4 ml-2" />
+                )
+              )}
+            </div>
           </TableHead>
           <TableHead>Link</TableHead>
         </TableRow>
