@@ -20,13 +20,13 @@ export default {
     extend: {
       colors: {
         grafana: {
-          blue: "#0EA5E9",
-          orange: "#F97316",
-          background: "#1A1F2C",
-          card: "#221F26",
-          text: "#F1F1F1",
-          accent: "#9b87f5",
-          muted: "#666666",
+          blue: "#3872E3",
+          orange: "#FF7941",
+          background: "#111827",
+          card: "#1F2937",
+          text: "#F9FAFB",
+          accent: "#8B5CF6",
+          muted: "#9CA3AF",
         },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
