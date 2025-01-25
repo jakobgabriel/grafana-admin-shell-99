@@ -3,7 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { GrafanaInstance } from "@/types/grafana";
 import SearchableTagFilter from './SearchableTagFilter';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Filter, SlidersHorizontal, List, ChevronUp, ChevronDown } from "lucide-react";
+import { Filter, SlidersHorizontal, List, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 
@@ -36,7 +36,6 @@ const DeploymentMatrix = ({ instances }: Props) => {
     return Array.from(tagsSet);
   }, [instances]);
 
-  // Get all unique tag combinations
   const getTagCombinations = () => {
     const combinations = new Set<string>();
     instances.forEach(instance => {
@@ -79,7 +78,6 @@ const DeploymentMatrix = ({ instances }: Props) => {
       });
   }, [instances, dashboardRange, sortOrder, sortedCombination, selectedTags]);
 
-  // Get the maximum dashboard count for any tag combination
   const maxTagDashboards = useMemo(() => {
     let max = 0;
     const combinations = getTagCombinations();
@@ -185,9 +183,6 @@ const DeploymentMatrix = ({ instances }: Props) => {
                       </PopoverContent>
                     </Popover>
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    {instance.dashboards || 0} dashboards
-                  </div>
                 </TableHead>
               ))}
             </TableRow>
@@ -202,9 +197,9 @@ const DeploymentMatrix = ({ instances }: Props) => {
                   <div className="flex items-center">
                     {sortedCombination === combination && (
                       sortOrder === 'asc' ? (
-                        <ChevronUp className="h-4 w-4 mr-2" />
+                        <ArrowUp className="h-4 w-4 mr-2" />
                       ) : (
-                        <ChevronDown className="h-4 w-4 mr-2" />
+                        <ArrowDown className="h-4 w-4 mr-2" />
                       )
                     )}
                     {combination.split(',').map((tag, tagIdx) => (
