@@ -1,5 +1,5 @@
 import React from 'react';
-import { Paste } from "lucide-react";
+import { ClipboardPaste } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -53,7 +53,7 @@ const GrafanaPasteDialog = ({ onPasteContent }: GrafanaPasteDialogProps) => {
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline" className="flex items-center gap-2">
-          <Paste className="w-4 h-4" />
+          <ClipboardPaste className="w-4 h-4" />
           Paste from API
         </Button>
       </DialogTrigger>
