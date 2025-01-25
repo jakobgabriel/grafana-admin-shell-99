@@ -1,94 +1,87 @@
-import { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useForm } from "react-hook-form";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 import {
   DrawerHeader,
   DrawerTitle,
   DrawerDescription,
 } from "@/components/ui/drawer";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
+
+interface AdminAuthFormData {
+  email: string;
+  password: string;
+}
 
 interface AdminPanelAuthProps {
   onAuthenticated: () => void;
 }
 
 const AdminPanelAuth = ({ onAuthenticated }: AdminPanelAuthProps) => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
   const { signIn } = useAuth();
+  const { toast } = useToast();
+  const { register, handleSubmit, formState: { errors } } = useForm<AdminAuthFormData>();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
+  const onSubmit = async (data: AdminAuthFormData) => {
+    console.log('Attempting to sign in with:', data.email);
     try {
-      console.log('Attempting to sign in with email:', email);
-      const { error } = await signIn(email, password);
-      
-      if (error) {
-        console.error('Sign in error:', error);
-        throw error;
+      const success = await signIn(data);
+      if (success) {
+        console.log('Sign in successful');
+        onAuthenticated();
+        toast({
+          title: "Success",
+          description: "Successfully authenticated",
+        });
       }
-
-      console.log('Sign in successful');
-      toast({
-        title: "Authentication successful",
-        description: "You are now logged in",
-      });
-      
-      onAuthenticated();
     } catch (error) {
-      console.error('Authentication error:', error);
+      console.error('Sign in error:', error);
       toast({
-        title: "Authentication failed",
-        description: "Please check your credentials and try again",
+        title: "Error",
+        description: "Failed to authenticate. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
   return (
-    <div className="grid gap-4 py-4">
+    <div className="p-4 bg-grafana-background">
       <DrawerHeader>
         <DrawerTitle>Connect Instance</DrawerTitle>
         <DrawerDescription>
-          Please sign in with your credentials to connect a new Grafana instance.
+          Please authenticate to connect a new Grafana instance
         </DrawerDescription>
       </DrawerHeader>
-      <form onSubmit={handleSubmit} className="space-y-4 px-4">
-        <div className="grid gap-2">
+      
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-4">
+        <div className="space-y-2">
           <Input
-            id="email"
             type="email"
-            placeholder="Enter your email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="bg-white"
+            placeholder="Email"
+            {...register("email", { required: true })}
+            className="w-full"
           />
+          {errors.email && (
+            <span className="text-red-500">Email is required</span>
+          )}
         </div>
-        <div className="grid gap-2">
+        
+        <div className="space-y-2">
           <Input
-            id="password"
             type="password"
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="bg-white"
+            placeholder="Password"
+            {...register("password", { required: true })}
+            className="w-full"
           />
+          {errors.password && (
+            <span className="text-red-500">Password is required</span>
+          )}
         </div>
-        <Button 
-          type="submit" 
-          disabled={isLoading}
-          className="w-full bg-grafana-blue hover:bg-grafana-blue/90"
-        >
-          {isLoading ? "Authenticating..." : "Sign In"}
+
+        <Button type="submit" className="w-full">
+          Authenticate
         </Button>
       </form>
     </div>
