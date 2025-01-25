@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
 import AdminPanelAuth from './AdminPanelAuth';
@@ -26,7 +26,7 @@ interface AdminPanelProps {
 const AdminPanel = ({ isOpen, onClose, onAddInstance }: AdminPanelProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { toast } = useToast();
-  const { isAdmin } = useAuth();
+  const { isAdmin, signOut } = useAuth();
   
   const form = useForm<GrafanaInstanceFormData>({
     defaultValues: {
@@ -36,6 +36,27 @@ const AdminPanel = ({ isOpen, onClose, onAddInstance }: AdminPanelProps) => {
       organizationId: "",
     },
   });
+
+  // Handle panel close and auto logout
+  const handleClose = async () => {
+    console.log('Closing admin panel and logging out');
+    try {
+      await signOut();
+      setIsAuthenticated(false);
+      onClose();
+      toast({
+        title: "Logged out",
+        description: "You have been logged out successfully",
+      });
+    } catch (error) {
+      console.error('Error during logout:', error);
+      toast({
+        title: "Error",
+        description: "Failed to log out properly",
+        variant: "destructive",
+      });
+    }
+  };
 
   const onSubmit = async (data: GrafanaInstanceFormData) => {
     console.log('Submitting instance data:', data);
@@ -65,7 +86,7 @@ const AdminPanel = ({ isOpen, onClose, onAddInstance }: AdminPanelProps) => {
         description: `Added Grafana instance: ${data.name}`,
       });
       form.reset();
-      onClose();
+      handleClose();
     } catch (error) {
       console.error('Error adding Grafana instance:', error);
       toast({
@@ -82,12 +103,12 @@ const AdminPanel = ({ isOpen, onClose, onAddInstance }: AdminPanelProps) => {
   };
 
   return (
-    <Drawer open={isOpen} onOpenChange={onClose}>
+    <Drawer open={isOpen} onOpenChange={handleClose}>
       <DrawerContent>
         {!isAuthenticated ? (
           <AdminPanelAuth onAuthenticated={handleAuthenticated} />
         ) : (
-          <AdminPanelForm form={form} onSubmit={onSubmit} onClose={onClose} />
+          <AdminPanelForm form={form} onSubmit={onSubmit} onClose={handleClose} />
         )}
       </DrawerContent>
     </Drawer>
