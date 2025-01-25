@@ -4,7 +4,7 @@ import AdminPanel from "@/components/AdminPanel";
 import Header from "@/components/Header";
 import SearchAndTabs from "@/components/SearchAndTabs";
 import { useGrafanaInstances } from "@/hooks/useGrafanaInstances";
-import { GrafanaInstanceFormData } from "@/types/grafana";
+import { GrafanaInstanceFormData, GrafanaInstance } from "@/types/grafana";
 
 // Demo data
 const demoInstances: GrafanaInstance[] = [
