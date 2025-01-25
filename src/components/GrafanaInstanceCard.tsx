@@ -18,10 +18,10 @@ interface Props {
 
 const GrafanaInstanceCard = ({ instance, onRemove }: Props) => {
   return (
-    <Card className="bg-grafana-card text-grafana-text hover:shadow-lg transition-shadow w-full">
+    <Card className="bg-grafana-card text-grafana-text hover:shadow-lg transition-shadow w-full border-grafana-accent/20">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <span>{instance.name}</span>
+          <span className="text-grafana-text font-semibold">{instance.name}</span>
           <div className="flex items-center gap-2">
             {onRemove && (
               <Button
@@ -31,7 +31,7 @@ const GrafanaInstanceCard = ({ instance, onRemove }: Props) => {
                   e.stopPropagation();
                   onRemove(instance.name);
                 }}
-                className="text-red-500 hover:text-red-700 hover:bg-red-100"
+                className="text-red-500 hover:text-red-400 hover:bg-red-500/10"
               >
                 <Trash2 size={16} />
               </Button>
@@ -40,7 +40,7 @@ const GrafanaInstanceCard = ({ instance, onRemove }: Props) => {
               href={instance.url} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-grafana-blue hover:text-blue-400"
+              className="text-grafana-blue hover:text-grafana-accent transition-colors"
             >
               <LinkIcon size={16} />
             </a>
@@ -49,11 +49,17 @@ const GrafanaInstanceCard = ({ instance, onRemove }: Props) => {
       </CardHeader>
       <CardContent>
         <div className="flex gap-4">
-          <Badge variant="secondary" className="flex items-center gap-2">
+          <Badge 
+            variant="secondary" 
+            className="flex items-center gap-2 bg-grafana-accent/10 text-grafana-accent hover:bg-grafana-accent/20"
+          >
             <FolderOpen size={14} />
             {instance.folders} Folders
           </Badge>
-          <Badge variant="secondary">
+          <Badge 
+            variant="secondary"
+            className="bg-grafana-accent/10 text-grafana-accent hover:bg-grafana-accent/20"
+          >
             {instance.dashboards} Dashboards
           </Badge>
         </div>
