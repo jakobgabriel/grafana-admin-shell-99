@@ -58,14 +58,15 @@ const DeploymentMatrix = ({ instances }: Props) => {
 
   // Filter and sort instances based on dashboard count
   const filteredInstances = useMemo(() => {
-    return instances
+    return [...instances]
       .filter(instance => {
         const totalDashboards = instance.dashboards || 0;
         return totalDashboards >= dashboardRange[0] && totalDashboards <= dashboardRange[1];
       })
       .sort((a, b) => {
-        const diff = (b.dashboards || 0) - (a.dashboards || 0);
-        return sortOrder === 'asc' ? -diff : diff;
+        const aCount = a.dashboards || 0;
+        const bCount = b.dashboards || 0;
+        return sortOrder === 'asc' ? aCount - bCount : bCount - aCount;
       });
   }, [instances, dashboardRange, sortOrder]);
 
