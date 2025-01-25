@@ -206,6 +206,7 @@ const Index = () => {
           setIsAdminPanelOpen(true);
         }}
         onPasteContent={handlePasteContent}
+        showWelcome={instances.length === 0}
       />
       
       <SearchAndTabs
