@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { RefreshCw, Trash2 } from "lucide-react";
 import { logUserInteraction } from "@/utils/userInteractions";
 import { GrafanaInstance } from "@/types/grafana";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 interface Props {
   instance: GrafanaInstance;
@@ -12,7 +14,20 @@ interface Props {
 }
 
 const GrafanaInstanceCard = ({ instance, onRemove, onRefresh }: Props) => {
+  const { isAdmin } = useAuth();
+  const { toast } = useToast();
+
   const handleRemove = async () => {
+    if (!isAdmin) {
+      console.log('Unauthorized attempt to remove instance');
+      toast({
+        title: "Unauthorized",
+        description: "You must be authenticated as an admin to remove instances",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (onRemove) {
       await logUserInteraction({
         event_type: 'remove_instance',
@@ -52,7 +67,7 @@ const GrafanaInstanceCard = ({ instance, onRemove, onRefresh }: Props) => {
           >
             <RefreshCw className="h-4 w-4" />
           </Button>
-          {onRemove && (
+          {isAdmin && onRemove && (
             <Button
               variant="ghost"
               size="icon"
