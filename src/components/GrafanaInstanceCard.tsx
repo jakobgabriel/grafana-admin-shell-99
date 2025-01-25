@@ -106,9 +106,9 @@ const GrafanaInstanceCard = ({ instance, onRemove, onRefresh }: Props) => {
       <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Authentication Required</DialogTitle>
+            <DialogTitle>Delete Instance</DialogTitle>
             <DialogDescription>
-              Please authenticate as an admin to remove this instance
+              Please authenticate as an admin to delete this instance
             </DialogDescription>
           </DialogHeader>
           <AdminPanelAuth onAuthenticated={handleAuthenticated} />
