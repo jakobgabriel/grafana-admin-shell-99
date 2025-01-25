@@ -47,19 +47,17 @@ export const useAuth = () => {
     }
   };
 
-  const signIn = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin
-      }
+  const signIn = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password
     });
 
     if (error) {
       console.error('Error signing in:', error);
-      return false;
+      return { error: error.message };
     }
-    return true;
+    return { error: null };
   };
 
   const signOut = async () => {

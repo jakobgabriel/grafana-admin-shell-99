@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DrawerHeader,
   DrawerTitle,
@@ -7,6 +8,7 @@ import {
 } from "@/components/ui/drawer";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface AdminPanelAuthProps {
   onAuthenticated: () => void;
@@ -14,12 +16,41 @@ interface AdminPanelAuthProps {
 
 const AdminPanelAuth = ({ onAuthenticated }: AdminPanelAuthProps) => {
   const { isAdmin, isLoading, signIn } = useAuth();
+  const { toast } = useToast();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   React.useEffect(() => {
     if (isAdmin) {
       onAuthenticated();
     }
   }, [isAdmin, onAuthenticated]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const { error } = await signIn(email, password);
+      
+      if (error) {
+        toast({
+          title: "Authentication failed",
+          description: error,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Authentication failed",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -34,17 +65,39 @@ const AdminPanelAuth = ({ onAuthenticated }: AdminPanelAuthProps) => {
       <DrawerHeader>
         <DrawerTitle>Admin Authentication Required</DrawerTitle>
         <DrawerDescription>
-          Please sign in with your Google account to access the admin panel
+          Please sign in with your admin credentials to access the admin panel
         </DrawerDescription>
       </DrawerHeader>
-      <div className="p-4">
+      <form onSubmit={handleSubmit} className="p-4 space-y-4">
+        <div className="space-y-2">
+          <Input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
         <Button 
-          onClick={signIn}
+          type="submit"
           className="w-full"
+          disabled={isSubmitting}
         >
-          Sign in with Google
+          {isSubmitting ? (
+            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+          ) : null}
+          Sign in
         </Button>
-      </div>
+      </form>
     </>
   );
 };
