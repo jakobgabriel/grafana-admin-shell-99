@@ -14,12 +14,15 @@ interface Props {
 const DeploymentMatrix = ({ instances }: Props) => {
   console.log('Rendering DeploymentMatrix with instances:', instances);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [dashboardRange, setDashboardRange] = useState<[number, number]>([0, 1000]);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
+  // Calculate max dashboards for slider range
   const maxDashboards = useMemo(() => {
     return Math.max(...instances.map(instance => instance.dashboards || 0));
   }, [instances]);
+
+  // Initialize dashboard range with full range
+  const [dashboardRange, setDashboardRange] = useState<[number, number]>([0, maxDashboards]);
 
   // Get all unique tags across all instances
   const allTags = useMemo(() => {
@@ -69,7 +72,7 @@ const DeploymentMatrix = ({ instances }: Props) => {
     return max;
   }, [instances, selectedTags]);
 
-  // Calculate cell background color based on count
+  // Calculate cell background color based on count (heatmap)
   const getCellColor = (count: number) => {
     if (count === 0) return 'bg-white';
     const intensity = Math.min((count / maxTagDashboards) * 100, 100);
@@ -80,8 +83,8 @@ const DeploymentMatrix = ({ instances }: Props) => {
   const filteredInstances = useMemo(() => {
     return [...instances]
       .filter(instance => {
-        const totalDashboards = instance.dashboards || 0;
-        return totalDashboards >= dashboardRange[0] && totalDashboards <= dashboardRange[1];
+        const dashCount = instance.dashboards || 0;
+        return dashCount >= dashboardRange[0] && dashCount <= dashboardRange[1];
       })
       .sort((a, b) => {
         const aCount = a.dashboards || 0;
@@ -102,7 +105,9 @@ const DeploymentMatrix = ({ instances }: Props) => {
 
   const handleSliderChange = (values: number[]) => {
     console.log('Slider values changed:', values);
-    setDashboardRange([values[0], values[1]]);
+    if (values.length === 2) {
+      setDashboardRange([values[0], values[1]]);
+    }
   };
 
   return (
@@ -147,9 +152,10 @@ const DeploymentMatrix = ({ instances }: Props) => {
                             <div className="mt-6">
                               <Slider
                                 defaultValue={[0, maxDashboards]}
-                                value={[dashboardRange[0], dashboardRange[1]]}
+                                value={dashboardRange}
                                 onValueChange={handleSliderChange}
                                 max={maxDashboards}
+                                min={0}
                                 step={1}
                                 minStepsBetweenThumbs={1}
                                 className="mt-2"
