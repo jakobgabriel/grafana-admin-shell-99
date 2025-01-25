@@ -100,6 +100,11 @@ const DeploymentMatrix = ({ instances }: Props) => {
     );
   };
 
+  const handleSliderChange = (values: number[]) => {
+    console.log('Slider values changed:', values);
+    setDashboardRange([values[0], values[1]]);
+  };
+
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-grafana-text">Deployment Matrix</h2>
@@ -141,8 +146,9 @@ const DeploymentMatrix = ({ instances }: Props) => {
                             <label className="text-sm text-muted-foreground">Dashboard Count Range</label>
                             <div className="mt-6">
                               <Slider
+                                defaultValue={[0, maxDashboards]}
                                 value={[dashboardRange[0], dashboardRange[1]]}
-                                onValueChange={(value) => setDashboardRange([value[0], value[1]])}
+                                onValueChange={handleSliderChange}
                                 max={maxDashboards}
                                 step={1}
                                 minStepsBetweenThumbs={1}
