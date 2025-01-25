@@ -6,7 +6,6 @@ import SearchAndTabs from "@/components/SearchAndTabs";
 import { useGrafanaInstances } from "@/hooks/useGrafanaInstances";
 import { GrafanaInstance, GrafanaInstanceFormData } from "@/types/grafana";
 import { logUserInteraction } from "@/utils/userInteractions";
-import { supabase } from "@/integrations/supabase/client";
 
 const demoInstances: GrafanaInstance[] = [
   {
@@ -96,27 +95,31 @@ const Index = () => {
     addPastedInstance
   } = useGrafanaInstances();
 
-  const handlePasteContent = async (content: any[]) => {
-    console.log('Processing pasted content:', content);
+  const handlePasteContent = async (data: { content: any[], name: string, url: string }) => {
+    console.log('Processing pasted content:', data);
     
     try {
       // Group items by folder
-      const folders = content.filter(item => item.type === 'dash-folder').map(folder => ({
-        id: folder.id.toString(),
-        title: folder.title
-      }));
+      const folders = data.content
+        .filter(item => item.type === 'dash-folder')
+        .map(folder => ({
+          id: folder.id.toString(),
+          title: folder.title
+        }));
 
-      const dashboards = content.filter(item => item.type === 'dash-db').map(dashboard => ({
-        title: dashboard.title,
-        description: dashboard.title, // Using title as description since it's not provided in the API
-        url: dashboard.url,
-        tags: dashboard.tags,
-        folderId: dashboard.folderId?.toString() || '0'
-      }));
+      const dashboards = data.content
+        .filter(item => item.type === 'dash-db')
+        .map(dashboard => ({
+          title: dashboard.title,
+          description: dashboard.title,
+          url: dashboard.url,
+          tags: dashboard.tags,
+          folderId: dashboard.folderId?.toString() || '0'
+        }));
 
       const newInstance: GrafanaInstance = {
-        name: `Pasted Instance ${new Date().toISOString().slice(0, 10)}`,
-        url: 'https://grafana.com', // Default URL since we don't have the actual URL
+        name: data.name,
+        url: data.url,
         api_key: '',
         folders: folders.length,
         dashboards: dashboards.length,

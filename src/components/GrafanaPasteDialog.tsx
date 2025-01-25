@@ -1,6 +1,7 @@
 import React from 'react';
 import { ClipboardPaste } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -36,6 +37,8 @@ interface GrafanaPasteDialogProps {
 
 const GrafanaPasteDialog = ({ onPasteContent }: GrafanaPasteDialogProps) => {
   const [content, setContent] = React.useState('');
+  const [instanceName, setInstanceName] = React.useState('');
+  const [instanceUrl, setInstanceUrl] = React.useState('');
   const { toast } = useToast();
 
   const validateGrafanaSearchResponse = (data: any[]): data is GrafanaSearchItem[] => {
@@ -52,6 +55,24 @@ const GrafanaPasteDialog = ({ onPasteContent }: GrafanaPasteDialogProps) => {
   };
 
   const handlePaste = async () => {
+    if (!instanceName.trim()) {
+      toast({
+        title: "Instance name required",
+        description: "Please provide a name for this Grafana instance",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!instanceUrl.trim()) {
+      toast({
+        title: "Instance URL required",
+        description: "Please provide the base URL of your Grafana instance",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const parsedContent = JSON.parse(content);
       
@@ -61,17 +82,32 @@ const GrafanaPasteDialog = ({ onPasteContent }: GrafanaPasteDialogProps) => {
 
       console.log('Processing Grafana Search API content:', parsedContent);
       
+      // Transform the URLs to use the provided instance URL
+      const transformedContent = parsedContent.map(item => ({
+        ...item,
+        url: `${instanceUrl.replace(/\/$/, '')}${item.url}`,
+      }));
+
       await logUserInteraction({
         event_type: 'paste_grafana_content',
         component: 'GrafanaPasteDialog',
-        details: { success: true, items_count: parsedContent.length }
+        details: { 
+          success: true, 
+          items_count: transformedContent.length,
+          instance_name: instanceName,
+          instance_url: instanceUrl
+        }
       });
 
-      onPasteContent(parsedContent);
+      onPasteContent({
+        content: transformedContent,
+        name: instanceName,
+        url: instanceUrl
+      });
       
       toast({
         title: "Content pasted successfully",
-        description: `Processed ${parsedContent.length} items from Grafana search API`,
+        description: `Processed ${transformedContent.length} items from Grafana search API`,
       });
     } catch (error) {
       console.error('Error parsing pasted content:', error);
@@ -80,7 +116,9 @@ const GrafanaPasteDialog = ({ onPasteContent }: GrafanaPasteDialogProps) => {
         component: 'GrafanaPasteDialog',
         details: { 
           success: false, 
-          error: error instanceof Error ? error.message : 'Invalid JSON format' 
+          error: error instanceof Error ? error.message : 'Invalid JSON format',
+          instance_name: instanceName,
+          instance_url: instanceUrl
         }
       });
       
@@ -105,9 +143,38 @@ const GrafanaPasteDialog = ({ onPasteContent }: GrafanaPasteDialogProps) => {
           <DialogTitle>Paste Grafana Search API Content</DialogTitle>
           <DialogDescription>
             Paste the JSON response from Grafana's /api/search endpoint. The content should be an array of dashboard and folder items.
-            <br />
-            <br />
-            Example format:
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid gap-2">
+            <label htmlFor="instanceName" className="text-sm font-medium">Instance Name</label>
+            <Input
+              id="instanceName"
+              placeholder="Enter instance name..."
+              value={instanceName}
+              onChange={(e) => setInstanceName(e.target.value)}
+            />
+          </div>
+          <div className="grid gap-2">
+            <label htmlFor="instanceUrl" className="text-sm font-medium">Instance URL</label>
+            <Input
+              id="instanceUrl"
+              placeholder="https://your-grafana-instance.com"
+              value={instanceUrl}
+              onChange={(e) => setInstanceUrl(e.target.value)}
+            />
+          </div>
+          <div className="grid gap-2">
+            <label htmlFor="content" className="text-sm font-medium">API Response</label>
+            <Textarea
+              id="content"
+              placeholder="Paste your JSON content here..."
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              className="min-h-[200px] font-mono"
+            />
+          </div>
+          <div>
             <pre className="text-xs bg-muted p-2 rounded mt-2 overflow-x-auto">
               {JSON.stringify([
                 {
@@ -123,15 +190,7 @@ const GrafanaPasteDialog = ({ onPasteContent }: GrafanaPasteDialogProps) => {
                 }
               ], null, 2)}
             </pre>
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <Textarea
-            placeholder="Paste your JSON content here..."
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            className="min-h-[200px] font-mono"
-          />
+          </div>
           <Button onClick={handlePaste}>Process Content</Button>
         </div>
       </DialogContent>
