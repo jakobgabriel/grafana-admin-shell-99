@@ -1,11 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { GrafanaInstance } from "@/types/grafana";
-import SearchableTagFilter from './SearchableTagFilter';
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Filter, SlidersHorizontal, List, ArrowUp, ArrowDown } from "lucide-react";
+import { Filter, SlidersHorizontal, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
+import SearchableTagFilter from './SearchableTagFilter';
+import { GrafanaInstance } from "@/types/grafana";
 
 interface Props {
   instances: GrafanaInstance[];
@@ -14,13 +14,8 @@ interface Props {
 const DeploymentMatrix = ({ instances }: Props) => {
   console.log('Rendering DeploymentMatrix with instances:', instances);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [sortConfig, setSortConfig] = useState<{
-    combination: string | null;
-    direction: 'asc' | 'desc';
-  }>({
-    combination: null,
-    direction: 'desc'
-  });
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   
   // Initialize dashboard range with full range
   const maxDashboards = useMemo(() => {
@@ -63,24 +58,24 @@ const DeploymentMatrix = ({ instances }: Props) => {
     }).length;
   };
 
-  // Filter and sort instances based on dashboard count
+  // Filter and sort instances
   const filteredInstances = useMemo(() => {
-    return [...instances]
+    return instances
       .filter(instance => {
         const dashCount = instance.dashboards || 0;
         return dashCount >= dashboardRange[0] && dashCount <= dashboardRange[1];
       })
       .sort((a, b) => {
-        if (!sortConfig.combination) return 0;
+        if (!sortColumn) return 0;
         
-        const aCount = countDashboards(a, sortConfig.combination);
-        const bCount = countDashboards(b, sortConfig.combination);
+        const aCount = countDashboards(a, sortColumn);
+        const bCount = countDashboards(b, sortColumn);
         
-        return sortConfig.direction === 'asc' 
+        return sortDirection === 'asc' 
           ? aCount - bCount 
           : bCount - aCount;
       });
-  }, [instances, dashboardRange, sortConfig, selectedTags]);
+  }, [instances, dashboardRange, sortColumn, sortDirection, selectedTags]);
 
   const maxTagDashboards = useMemo(() => {
     let max = 0;
@@ -109,17 +104,18 @@ const DeploymentMatrix = ({ instances }: Props) => {
   };
 
   const handleSliderChange = (values: number[]) => {
-    console.log('Slider values changed:', values);
     if (values.length === 2) {
       setDashboardRange([values[0], values[1]]);
     }
   };
 
   const handleSort = (combination: string) => {
-    setSortConfig(prev => ({
-      combination,
-      direction: prev.combination === combination && prev.direction === 'desc' ? 'asc' : 'desc'
-    }));
+    if (sortColumn === combination) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(combination);
+      setSortDirection('asc');
+    }
   };
 
   const tagCombinations = getTagCombinations();
@@ -137,7 +133,7 @@ const DeploymentMatrix = ({ instances }: Props) => {
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-8 w-8 ml-2">
-                      <List className="h-4 w-4" />
+                      <Filter className="h-4 w-4" />
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-80">
@@ -196,8 +192,8 @@ const DeploymentMatrix = ({ instances }: Props) => {
                   onClick={() => handleSort(combination)}
                 >
                   <div className="flex items-center">
-                    {sortConfig.combination === combination && (
-                      sortConfig.direction === 'asc' ? (
+                    {sortColumn === combination && (
+                      sortDirection === 'asc' ? (
                         <ArrowUp className="h-4 w-4 mr-2" />
                       ) : (
                         <ArrowDown className="h-4 w-4 mr-2" />
