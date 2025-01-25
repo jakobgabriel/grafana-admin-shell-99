@@ -23,6 +23,7 @@ const AdminPanelAuth = ({ onAuthenticated }: AdminPanelAuthProps) => {
 
   React.useEffect(() => {
     if (isAdmin) {
+      console.log('User is admin, triggering onAuthenticated');
       onAuthenticated();
     }
   }, [isAdmin, onAuthenticated]);
@@ -30,18 +31,27 @@ const AdminPanelAuth = ({ onAuthenticated }: AdminPanelAuthProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    console.log('Submitting auth form with email:', email);
 
     try {
       const { error } = await signIn(email, password);
       
       if (error) {
+        console.error('Authentication error:', error);
         toast({
           title: "Authentication failed",
           description: error,
           variant: "destructive",
         });
+      } else {
+        console.log('Authentication successful');
+        toast({
+          title: "Authentication successful",
+          description: "You are now logged in as admin",
+        });
       }
     } catch (error) {
+      console.error('Unexpected authentication error:', error);
       toast({
         title: "Authentication failed",
         description: "An unexpected error occurred",

@@ -7,7 +7,8 @@ export const useAuth = () => {
 
   useEffect(() => {
     checkAdminStatus();
-    const { data: authListener } = supabase.auth.onAuthStateChange(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session?.user?.id);
       checkAdminStatus();
     });
 
@@ -21,8 +22,10 @@ export const useAuth = () => {
   const checkAdminStatus = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      console.log('Current user:', user?.id);
       
       if (!user) {
+        console.log('No user found');
         setIsAdmin(false);
         setIsLoading(false);
         return;
@@ -37,6 +40,7 @@ export const useAuth = () => {
         console.error('Error checking admin status:', error);
         setIsAdmin(false);
       } else {
+        console.log('Admin status:', data);
         setIsAdmin(data);
       }
     } catch (error) {
@@ -48,25 +52,39 @@ export const useAuth = () => {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
+    console.log('Attempting to sign in with email:', email);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
 
-    if (error) {
-      console.error('Error signing in:', error);
-      return { error: error.message };
+      if (error) {
+        console.error('Sign in error:', error);
+        return { error: error.message };
+      }
+
+      console.log('Sign in successful:', data.user?.id);
+      return { error: null };
+    } catch (error) {
+      console.error('Unexpected error during sign in:', error);
+      return { error: 'An unexpected error occurred' };
     }
-    return { error: null };
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error('Error signing out:', error);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Error signing out:', error);
+        return false;
+      }
+      console.log('Sign out successful');
+      return true;
+    } catch (error) {
+      console.error('Unexpected error during sign out:', error);
       return false;
     }
-    return true;
   };
 
   return {
