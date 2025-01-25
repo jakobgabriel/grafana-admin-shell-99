@@ -27,11 +27,25 @@ const DeploymentMatrix = ({ instances }: Props) => {
   const tagCombinations = useMemo(() => getTagCombinations(instances), [instances]);
 
   const filteredTagCombinations = useMemo(() => {
-    if (!searchQuery) return tagCombinations;
-    return tagCombinations.filter(combination =>
-      combination.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [tagCombinations, searchQuery]);
+    let filtered = tagCombinations;
+    
+    // Apply search filter
+    if (searchQuery) {
+      filtered = filtered.filter(combination =>
+        combination.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    
+    // Apply tag filter
+    if (selectedTags.length > 0) {
+      filtered = filtered.filter(combination => {
+        const combinationTags = combination.split(', ');
+        return selectedTags.every(tag => combinationTags.includes(tag));
+      });
+    }
+    
+    return filtered;
+  }, [tagCombinations, searchQuery, selectedTags]);
 
   const filteredInstances = useMemo(() => 
     filterInstances(instances, selectedTags), 
