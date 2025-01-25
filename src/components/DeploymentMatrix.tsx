@@ -15,6 +15,7 @@ const DeploymentMatrix = ({ instances }: Props) => {
   console.log('Rendering DeploymentMatrix with instances:', instances);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [sortedCombination, setSortedCombination] = useState<string | null>(null);
 
   // Calculate max dashboards for slider range
   const maxDashboards = useMemo(() => {
@@ -59,7 +60,7 @@ const DeploymentMatrix = ({ instances }: Props) => {
     }).length;
   };
 
-  // Filter instances based on dashboard count
+  // Filter and sort instances based on dashboard count
   const filteredInstances = useMemo(() => {
     return [...instances]
       .filter(instance => {
@@ -67,21 +68,16 @@ const DeploymentMatrix = ({ instances }: Props) => {
         return dashCount >= dashboardRange[0] && dashCount <= dashboardRange[1];
       })
       .sort((a, b) => {
-        // Sort based on the current tag combination's dashboard count
-        const combinations = getTagCombinations();
-        let aTotalForCombinations = 0;
-        let bTotalForCombinations = 0;
+        if (!sortedCombination) return 0;
         
-        combinations.forEach(combination => {
-          aTotalForCombinations += countDashboards(a, combination);
-          bTotalForCombinations += countDashboards(b, combination);
-        });
-
+        const aCount = countDashboards(a, sortedCombination);
+        const bCount = countDashboards(b, sortedCombination);
+        
         return sortOrder === 'asc' 
-          ? aTotalForCombinations - bTotalForCombinations 
-          : bTotalForCombinations - aTotalForCombinations;
+          ? aCount - bCount 
+          : bCount - aCount;
       });
-  }, [instances, dashboardRange, sortOrder, selectedTags]);
+  }, [instances, dashboardRange, sortOrder, sortedCombination, selectedTags]);
 
   // Get the maximum dashboard count for any tag combination
   const maxTagDashboards = useMemo(() => {
@@ -118,9 +114,16 @@ const DeploymentMatrix = ({ instances }: Props) => {
     }
   };
 
-  const tagCombinations = getTagCombinations();
+  const handleSort = (combination: string) => {
+    if (sortedCombination === combination) {
+      setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortedCombination(combination);
+      setSortOrder('desc');
+    }
+  };
 
-  // ... keep existing code (JSX for the component remains unchanged)
+  const tagCombinations = getTagCombinations();
 
   return (
     <div className="space-y-6">
@@ -178,22 +181,6 @@ const DeploymentMatrix = ({ instances }: Props) => {
                               <span>{dashboardRange[1]}</span>
                             </div>
                           </div>
-                          <div>
-                            <label className="text-sm text-muted-foreground">Sort Order</label>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="w-full mt-1"
-                              onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-                            >
-                              {sortOrder === 'asc' ? (
-                                <ChevronUp className="h-4 w-4 mr-2" />
-                              ) : (
-                                <ChevronDown className="h-4 w-4 mr-2" />
-                              )}
-                              {sortOrder === 'asc' ? 'Ascending' : 'Descending'}
-                            </Button>
-                          </div>
                         </div>
                       </PopoverContent>
                     </Popover>
@@ -208,15 +195,27 @@ const DeploymentMatrix = ({ instances }: Props) => {
           <TableBody>
             {tagCombinations.map((combination, idx) => (
               <TableRow key={idx}>
-                <TableCell className="font-medium">
-                  {combination.split(',').map((tag, tagIdx) => (
-                    <span 
-                      key={tagIdx}
-                      className="inline-block bg-grafana-accent/10 text-grafana-accent px-2 py-1 rounded-full text-sm mr-1 mb-1"
-                    >
-                      {tag}
-                    </span>
-                  ))}
+                <TableCell 
+                  className="font-medium cursor-pointer hover:bg-gray-50"
+                  onClick={() => handleSort(combination)}
+                >
+                  <div className="flex items-center">
+                    {sortedCombination === combination && (
+                      sortOrder === 'asc' ? (
+                        <ChevronUp className="h-4 w-4 mr-2" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 mr-2" />
+                      )
+                    )}
+                    {combination.split(',').map((tag, tagIdx) => (
+                      <span 
+                        key={tagIdx}
+                        className="inline-block bg-grafana-accent/10 text-grafana-accent px-2 py-1 rounded-full text-sm mr-1 mb-1"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
                 </TableCell>
                 {filteredInstances.map((instance, instanceIdx) => {
                   const count = countDashboards(instance, combination);
