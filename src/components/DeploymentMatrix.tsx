@@ -59,6 +59,30 @@ const DeploymentMatrix = ({ instances }: Props) => {
     }).length;
   };
 
+  // Calculate total dashboards for an instance across all tag combinations
+  const getTotalDashboards = (instance: GrafanaInstance) => {
+    const combinations = getTagCombinations();
+    return combinations.reduce((total, combination) => {
+      return total + countDashboards(instance, combination);
+    }, 0);
+  };
+
+  // Filter and sort instances based on dashboard count
+  const filteredInstances = useMemo(() => {
+    return [...instances]
+      .filter(instance => {
+        const totalDashboards = getTotalDashboards(instance);
+        return totalDashboards >= dashboardRange[0] && totalDashboards <= dashboardRange[1];
+      })
+      .sort((a, b) => {
+        const aTotalDashboards = getTotalDashboards(a);
+        const bTotalDashboards = getTotalDashboards(b);
+        return sortOrder === 'asc' 
+          ? aTotalDashboards - bTotalDashboards 
+          : bTotalDashboards - aTotalDashboards;
+      });
+  }, [instances, dashboardRange, sortOrder, selectedTags]);
+
   // Get the maximum dashboard count for any tag combination
   const maxTagDashboards = useMemo(() => {
     let max = 0;
@@ -79,33 +103,6 @@ const DeploymentMatrix = ({ instances }: Props) => {
     return `bg-grafana-accent/${Math.round(intensity)}`;
   };
 
-  // Filter and sort instances based on dashboard count
-  const filteredInstances = useMemo(() => {
-    return [...instances]
-      .filter(instance => {
-        const dashCount = instance.dashboards || 0;
-        return dashCount >= dashboardRange[0] && dashCount <= dashboardRange[1];
-      })
-      .sort((a, b) => {
-        // Get the total number of dashboards for each instance
-        const getTotalDashboards = (instance: GrafanaInstance) => {
-          const combinations = getTagCombinations();
-          return combinations.reduce((total, combination) => {
-            return total + countDashboards(instance, combination);
-          }, 0);
-        };
-
-        const aTotalDashboards = getTotalDashboards(a);
-        const bTotalDashboards = getTotalDashboards(b);
-
-        return sortOrder === 'asc' 
-          ? aTotalDashboards - bTotalDashboards 
-          : bTotalDashboards - aTotalDashboards;
-      });
-  }, [instances, dashboardRange, sortOrder, selectedTags]);
-
-  const tagCombinations = getTagCombinations();
-
   const handleTagSelect = (tag: string) => {
     setSelectedTags(prev => 
       prev.includes(tag) 
@@ -120,6 +117,8 @@ const DeploymentMatrix = ({ instances }: Props) => {
       setDashboardRange([values[0], values[1]]);
     }
   };
+
+  const tagCombinations = getTagCombinations();
 
   // ... keep existing code (JSX for the component remains unchanged)
 
@@ -200,7 +199,7 @@ const DeploymentMatrix = ({ instances }: Props) => {
                     </Popover>
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    {instance.dashboards || 0} dashboards
+                    {getTotalDashboards(instance)} dashboards
                   </div>
                 </TableHead>
               ))}
