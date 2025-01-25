@@ -1,12 +1,89 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { GrafanaInstance, GrafanaInstanceFormData } from "@/types/grafana";
+import { GrafanaInstance, GrafanaInstanceFormData, DashboardData, FolderData } from "@/types/grafana";
+
+interface GrafanaSearchItem {
+  id: number;
+  uid: string;
+  title: string;
+  uri: string;
+  url: string;
+  slug: string;
+  type: string;
+  tags: string[];
+  isStarred: boolean;
+  folderId?: number;
+  folderUid?: string;
+  folderTitle?: string;
+  folderUrl?: string;
+  description?: string;
+}
+
+const fetchFolderContents = async (instance: GrafanaInstanceFormData, folderUid: string): Promise<GrafanaSearchItem[]> => {
+  console.log(`Fetching contents for folder ${folderUid}`);
+  try {
+    const response = await fetch(`${instance.url}/api/search?folderIds=${folderUid}`, {
+      headers: {
+        'Authorization': `Bearer ${instance.apiKey}`,
+        'Accept': 'application/json',
+      },
+      mode: 'cors'
+    });
+
+    if (!response.ok) {
+      console.error(`Failed to fetch folder contents for ${folderUid}:`, response.statusText);
+      return [];
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching folder contents for ${folderUid}:`, error);
+    return [];
+  }
+};
+
+const processSearchResults = async (
+  instance: GrafanaInstanceFormData,
+  items: GrafanaSearchItem[]
+): Promise<{ folders: FolderData[], dashboards: DashboardData[] }> => {
+  console.log('Processing search results:', items);
+  
+  const folders: FolderData[] = [];
+  const dashboards: DashboardData[] = [];
+  
+  for (const item of items) {
+    if (item.type === 'dash-folder') {
+      folders.push({
+        id: item.id.toString(),
+        title: item.title,
+      });
+      
+      // Recursively fetch contents of this folder
+      const folderContents = await fetchFolderContents(instance, item.uid);
+      const processedContents = await processSearchResults(instance, folderContents);
+      
+      folders.push(...processedContents.folders);
+      dashboards.push(...processedContents.dashboards);
+    } else if (item.type === 'dash-db') {
+      dashboards.push({
+        title: item.title,
+        description: item.description || 'No description available',
+        url: `${instance.url}${item.url}`,
+        tags: item.tags || [],
+        folderId: (item.folderId || 0).toString()
+      });
+    }
+  }
+  
+  return { folders, dashboards };
+};
 
 export const fetchGrafanaData = async (instance: GrafanaInstanceFormData) => {
   console.log('Fetching Grafana data for instance:', instance.name);
   
   try {
-    const searchResponse = await fetch(`${instance.url}/api/search?type=dash-db,folder`, {
+    // Initial search to get all items
+    const searchResponse = await fetch(`${instance.url}/api/search`, {
       headers: {
         'Authorization': `Bearer ${instance.apiKey}`,
         'Accept': 'application/json',
@@ -20,26 +97,10 @@ export const fetchGrafanaData = async (instance: GrafanaInstanceFormData) => {
       return null;
     }
 
-    const searchResults = await searchResponse.json();
+    const searchResults: GrafanaSearchItem[] = await searchResponse.json();
     console.log('Successfully fetched search results:', searchResults);
 
-    const folders = searchResults
-      .filter((item: any) => item.type === 'folder')
-      .map((folder: any) => ({
-        id: folder.id.toString(),
-        title: folder.title,
-        uid: folder.uid
-      }));
-
-    const dashboards = searchResults
-      .filter((item: any) => item.type === 'dash-db')
-      .map((dash: any) => ({
-        title: dash.title,
-        description: dash.description || 'No description available',
-        url: `${instance.url}${dash.url}`,
-        tags: dash.tags || [],
-        folderId: dash.folderId?.toString() || "0"
-      }));
+    const { folders, dashboards } = await processSearchResults(instance, searchResults);
 
     const result = {
       name: instance.name,
@@ -61,6 +122,12 @@ export const fetchGrafanaData = async (instance: GrafanaInstanceFormData) => {
       toast.error('Failed to save instance data');
       return null;
     }
+
+    await logUserInteraction('fetch_grafana_data', 'GrafanaAPI', {
+      instance_name: instance.name,
+      folders_count: folders.length,
+      dashboards_count: dashboards.length
+    });
 
     console.log('Successfully processed Grafana instance data:', result);
     return result as GrafanaInstance;
