@@ -24,6 +24,7 @@ services:
       POSTGRES_PASSWORD: your-super-secret-password
     volumes:
       - supabase-data:/var/lib/postgresql/data
+      - ./supabase/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - grafana-network
 
