@@ -1,12 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
-interface GrafanaInstanceFormData {
-  name: string;
-  url: string;
-  apiKey: string;
-  organizationId?: string;
-}
+import { GrafanaInstance, GrafanaInstanceFormData } from "@/types/grafana";
 
 export const fetchGrafanaData = async (instance: GrafanaInstanceFormData) => {
   console.log('Fetching Grafana data for instance:', instance.name);
@@ -48,11 +42,13 @@ export const fetchGrafanaData = async (instance: GrafanaInstanceFormData) => {
       }));
 
     const result = {
-      ...instance,
+      name: instance.name,
+      url: instance.url,
+      api_key: instance.apiKey,
       folders: folders.length,
       dashboards: dashboards.length,
-      foldersList: folders,
-      dashboardsList: dashboards
+      folders_list: folders,
+      dashboards_list: dashboards
     };
 
     // Save to Supabase
@@ -94,9 +90,14 @@ export const logUserInteraction = async (eventType: string, component: string, d
   }
 };
 
-export const refreshGrafanaInstance = async (instance: GrafanaInstanceFormData) => {
+export const refreshGrafanaInstance = async (instance: GrafanaInstance) => {
   console.log('Refreshing Grafana instance:', instance.name);
-  const result = await fetchGrafanaData(instance);
+  const formData: GrafanaInstanceFormData = {
+    name: instance.name,
+    url: instance.url,
+    apiKey: instance.api_key
+  };
+  const result = await fetchGrafanaData(formData);
   if (result) {
     toast.success(`Successfully refreshed ${instance.name}`);
   }

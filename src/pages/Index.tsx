@@ -5,20 +5,7 @@ import Header from "@/components/Header";
 import SearchAndTabs from "@/components/SearchAndTabs";
 import { fetchGrafanaData, logUserInteraction } from "@/utils/grafanaApi";
 import { supabase } from "@/integrations/supabase/client";
-
-interface GrafanaInstanceFormData {
-  name: string;
-  url: string;
-  apiKey: string;
-  organizationId?: string;
-}
-
-interface GrafanaInstance extends GrafanaInstanceFormData {
-  folders: number;
-  dashboards: number;
-  foldersList: any[];
-  dashboardsList: any[];
-}
+import { GrafanaInstance, GrafanaInstanceFormData } from "@/types/grafana";
 
 const STORAGE_KEY = 'grafana-instances';
 
@@ -120,7 +107,7 @@ const Index = () => {
       }
 
       if (data && data.length > 0) {
-        setInstances(data);
+        setInstances(data as GrafanaInstance[]);
         await logUserInteraction('load_instances', 'Index', { count: data.length });
       }
     };
