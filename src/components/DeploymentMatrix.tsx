@@ -59,27 +59,27 @@ const DeploymentMatrix = ({ instances }: Props) => {
     }).length;
   };
 
-  // Calculate total dashboards for an instance across all tag combinations
-  const getTotalDashboards = (instance: GrafanaInstance) => {
-    const combinations = getTagCombinations();
-    return combinations.reduce((total, combination) => {
-      return total + countDashboards(instance, combination);
-    }, 0);
-  };
-
-  // Filter and sort instances based on dashboard count
+  // Filter instances based on dashboard count
   const filteredInstances = useMemo(() => {
     return [...instances]
       .filter(instance => {
-        const totalDashboards = getTotalDashboards(instance);
-        return totalDashboards >= dashboardRange[0] && totalDashboards <= dashboardRange[1];
+        const dashCount = instance.dashboards || 0;
+        return dashCount >= dashboardRange[0] && dashCount <= dashboardRange[1];
       })
       .sort((a, b) => {
-        const aTotalDashboards = getTotalDashboards(a);
-        const bTotalDashboards = getTotalDashboards(b);
+        // Sort based on the current tag combination's dashboard count
+        const combinations = getTagCombinations();
+        let aTotalForCombinations = 0;
+        let bTotalForCombinations = 0;
+        
+        combinations.forEach(combination => {
+          aTotalForCombinations += countDashboards(a, combination);
+          bTotalForCombinations += countDashboards(b, combination);
+        });
+
         return sortOrder === 'asc' 
-          ? aTotalDashboards - bTotalDashboards 
-          : bTotalDashboards - aTotalDashboards;
+          ? aTotalForCombinations - bTotalForCombinations 
+          : bTotalForCombinations - aTotalForCombinations;
       });
   }, [instances, dashboardRange, sortOrder, selectedTags]);
 
@@ -199,7 +199,7 @@ const DeploymentMatrix = ({ instances }: Props) => {
                     </Popover>
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    {getTotalDashboards(instance)} dashboards
+                    {instance.dashboards || 0} dashboards
                   </div>
                 </TableHead>
               ))}
