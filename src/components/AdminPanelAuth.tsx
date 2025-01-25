@@ -55,7 +55,7 @@ const AdminPanelAuth = ({ onAuthenticated }: AdminPanelAuthProps) => {
   return (
     <div className="grid gap-4 py-4">
       <DrawerHeader>
-        <DrawerTitle>Authentication Required</DrawerTitle>
+        <DrawerTitle>Connect Instance</DrawerTitle>
         <DrawerDescription>
           Please sign in with your credentials to connect a new Grafana instance.
         </DrawerDescription>
