@@ -14,7 +14,7 @@ interface Props {
 const DeploymentMatrix = ({ instances }: Props) => {
   console.log('Rendering DeploymentMatrix with instances:', instances);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [dashboardRange, setDashboardRange] = useState<number[]>([0, 1000]);
+  const [dashboardRange, setDashboardRange] = useState<[number, number]>([0, 1000]);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const maxDashboards = useMemo(() => {
@@ -54,6 +54,26 @@ const DeploymentMatrix = ({ instances }: Props) => {
       return tags.length === dashboardTags.length && 
              tags.every((tag, index) => tag === dashboardTags[index]);
     }).length;
+  };
+
+  // Get the maximum dashboard count for any tag combination
+  const maxTagDashboards = useMemo(() => {
+    let max = 0;
+    const combinations = getTagCombinations();
+    combinations.forEach(combination => {
+      instances.forEach(instance => {
+        const count = countDashboards(instance, combination);
+        max = Math.max(max, count);
+      });
+    });
+    return max;
+  }, [instances, selectedTags]);
+
+  // Calculate cell background color based on count
+  const getCellColor = (count: number) => {
+    if (count === 0) return 'bg-white';
+    const intensity = Math.min((count / maxTagDashboards) * 100, 100);
+    return `bg-grafana-accent/${Math.round(intensity)}`;
   };
 
   // Filter and sort instances based on dashboard count
@@ -119,13 +139,16 @@ const DeploymentMatrix = ({ instances }: Props) => {
                         <div className="space-y-4">
                           <div>
                             <label className="text-sm text-muted-foreground">Dashboard Count Range</label>
-                            <Slider
-                              value={dashboardRange}
-                              onValueChange={setDashboardRange}
-                              max={maxDashboards}
-                              step={1}
-                              className="mt-2"
-                            />
+                            <div className="mt-6">
+                              <Slider
+                                value={[dashboardRange[0], dashboardRange[1]]}
+                                onValueChange={(value) => setDashboardRange([value[0], value[1]])}
+                                max={maxDashboards}
+                                step={1}
+                                minStepsBetweenThumbs={1}
+                                className="mt-2"
+                              />
+                            </div>
                             <div className="flex justify-between mt-1 text-xs text-muted-foreground">
                               <span>{dashboardRange[0]}</span>
                               <span>{dashboardRange[1]}</span>
@@ -171,11 +194,17 @@ const DeploymentMatrix = ({ instances }: Props) => {
                     </span>
                   ))}
                 </TableCell>
-                {filteredInstances.map((instance, instanceIdx) => (
-                  <TableCell key={instanceIdx}>
-                    {countDashboards(instance, combination)}
-                  </TableCell>
-                ))}
+                {filteredInstances.map((instance, instanceIdx) => {
+                  const count = countDashboards(instance, combination);
+                  return (
+                    <TableCell 
+                      key={instanceIdx}
+                      className={`${getCellColor(count)} transition-colors duration-200`}
+                    >
+                      {count}
+                    </TableCell>
+                  );
+                })}
               </TableRow>
             ))}
           </TableBody>
