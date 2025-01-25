@@ -23,10 +23,7 @@ export const useGrafanaInstances = () => {
       
       if (error) {
         console.error('Error loading instances:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load saved instances"
-        });
+        toast("Failed to load saved instances");
         return;
       }
 
@@ -47,10 +44,7 @@ export const useGrafanaInstances = () => {
     if (data) {
       setInstances(prev => [...prev, data]);
       await logUserInteraction('add_instance', 'Index', { instance_name: instance.name });
-      toast({
-        title: "Instance Added",
-        description: `Successfully added ${instance.name} to your instances.`
-      });
+      toast(`Successfully added ${instance.name} to your instances.`);
       return true;
     }
     return false;
@@ -64,19 +58,13 @@ export const useGrafanaInstances = () => {
 
     if (error) {
       console.error('Error removing instance:', error);
-      toast({
-        title: "Error",
-        description: `Failed to remove ${name}`
-      });
+      toast(`Failed to remove ${name}`);
       return false;
     }
 
     setInstances(prev => prev.filter(instance => instance.name !== name));
     await logUserInteraction('remove_instance', 'Index', { instance_name: name });
-    toast({
-      title: "Instance Removed",
-      description: `Successfully removed ${name} from your instances.`
-    });
+    toast(`Successfully removed ${name} from your instances.`);
     return true;
   };
 
