@@ -60,12 +60,14 @@ export const getCellColor = (count: number, maxDashboards: number): string => {
   // Calculate percentage of max value
   const percentage = (count / maxDashboards) * 100;
   
-  // Orange to green gradient based on percentage
-  if (percentage <= 33) {
-    return 'bg-grafana-orange/30';
-  } else if (percentage <= 66) {
-    return 'bg-grafana-orange/60';
+  // Create a more sophisticated blue gradient based on percentage
+  if (percentage <= 25) {
+    return 'bg-[#D3E4FD] text-gray-700'; // Soft Blue
+  } else if (percentage <= 50) {
+    return 'bg-[#33C3F0] text-white'; // Sky Blue
+  } else if (percentage <= 75) {
+    return 'bg-[#0EA5E9] text-white'; // Ocean Blue
   } else {
-    return 'bg-green-500/60';
+    return 'bg-[#1EAEDB] text-white'; // Bright Blue
   }
 };
