@@ -60,8 +60,8 @@ export const useGrafanaInstances = () => {
           api_key: instance.api_key,
           folders: instance.folders,
           dashboards: instance.dashboards,
-          folders_list: instance.folders_list as Json,
-          dashboards_list: instance.dashboards_list as Json
+          folders_list: instance.folders_list as unknown as Json,
+          dashboards_list: instance.dashboards_list as unknown as Json
         });
 
       if (error) {
