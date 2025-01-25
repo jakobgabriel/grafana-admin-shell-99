@@ -54,9 +54,7 @@ export const fetchGrafanaData = async (instance: GrafanaInstanceFormData) => {
     // Save to Supabase
     const { error } = await supabase
       .from('grafana_instances')
-      .upsert([result], {
-        onConflict: 'name'
-      });
+      .upsert([result]);
 
     if (error) {
       console.error('Error saving to Supabase:', error);
@@ -65,7 +63,7 @@ export const fetchGrafanaData = async (instance: GrafanaInstanceFormData) => {
     }
 
     console.log('Successfully processed Grafana instance data:', result);
-    return result;
+    return result as GrafanaInstance;
 
   } catch (error) {
     console.error('Error fetching Grafana data:', error);

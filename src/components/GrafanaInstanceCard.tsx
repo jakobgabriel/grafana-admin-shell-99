@@ -3,19 +3,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, Trash2 } from "lucide-react";
 import { logUserInteraction, refreshGrafanaInstance } from "@/utils/grafanaApi";
-
-interface Instance {
-  name: string;
-  url: string;
-  apiKey: string;
-  folders: number;
-  dashboards: number;
-}
+import { GrafanaInstance } from "@/types/grafana";
 
 interface Props {
-  instance: Instance;
+  instance: GrafanaInstance;
   onRemove?: (name: string) => void;
-  onRefresh?: (instance: Instance) => void;
+  onRefresh?: (instance: GrafanaInstance) => void;
 }
 
 const GrafanaInstanceCard = ({ instance, onRemove, onRefresh }: Props) => {

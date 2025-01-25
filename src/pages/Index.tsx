@@ -10,19 +10,19 @@ import { GrafanaInstance, GrafanaInstanceFormData } from "@/types/grafana";
 const STORAGE_KEY = 'grafana-instances';
 
 // Demo data
-const demoInstances = [
+const demoInstances: GrafanaInstance[] = [
   {
     name: "Production Grafana",
     url: "https://play.grafana.org",
-    apiKey: "", // Added apiKey to match GrafanaInstance type
+    api_key: "",
     folders: 3,
     dashboards: 8,
-    foldersList: [
+    folders_list: [
       { id: "1", title: "System Monitoring" },
       { id: "2", title: "Application Metrics" },
       { id: "3", title: "Infrastructure" }
     ],
-    dashboardsList: [
+    dashboards_list: [
       {
         title: "System Overview",
         description: "Complete system metrics dashboard with CPU, Memory, Network, and Disk usage metrics",
@@ -49,14 +49,14 @@ const demoInstances = [
   {
     name: "Development Grafana",
     url: "https://play-dev.grafana.org",
-    apiKey: "", // Added apiKey to match GrafanaInstance type
+    api_key: "",
     folders: 2,
     dashboards: 7,
-    foldersList: [
+    folders_list: [
       { id: "4", title: "Development Metrics" },
       { id: "5", title: "Testing Environment" }
     ],
-    dashboardsList: [
+    dashboards_list: [
       {
         title: "Dev Environment Health",
         description: "Development environment health monitoring",
@@ -135,7 +135,7 @@ const Index = () => {
     const tagsSet = new Set<string>();
     const allInstances = [...instances, ...demoInstances];
     allInstances.forEach(instance => {
-      instance.dashboardsList.forEach(dashboard => {
+      instance.dashboards_list.forEach(dashboard => {
         dashboard.tags.forEach((tag: string) => tagsSet.add(tag));
       });
     });

@@ -7,8 +7,11 @@ export interface GrafanaInstanceFormData {
   organizationId?: string;
 }
 
-export interface GrafanaInstance extends GrafanaInstanceFormData {
+export interface GrafanaInstance {
   id?: string;
+  name: string;
+  url: string;
+  api_key: string;
   folders: number;
   dashboards: number;
   folders_list: Json;
