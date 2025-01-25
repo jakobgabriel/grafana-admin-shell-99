@@ -2,11 +2,10 @@ import React, { useState, useMemo } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { GrafanaInstance } from "@/types/grafana";
 import SearchableTagFilter from './SearchableTagFilter';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Filter, SlidersHorizontal, List, ChevronUp, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 
 interface Props {
   instances: GrafanaInstance[];
@@ -65,8 +64,8 @@ const DeploymentMatrix = ({ instances }: Props) => {
         return totalDashboards >= dashboardRange[0] && totalDashboards <= dashboardRange[1];
       })
       .sort((a, b) => {
-        const diff = (a.dashboards || 0) - (b.dashboards || 0);
-        return sortOrder === 'asc' ? diff : -diff;
+        const diff = (b.dashboards || 0) - (a.dashboards || 0);
+        return sortOrder === 'asc' ? -diff : diff;
       });
   }, [instances, dashboardRange, sortOrder]);
 
@@ -109,45 +108,47 @@ const DeploymentMatrix = ({ instances }: Props) => {
                 <TableHead key={idx} className="min-w-[150px]">
                   <div className="flex items-center justify-between">
                     <span>{instance.name}</span>
-                    <div className="flex items-center gap-1">
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <SlidersHorizontal className="h-4 w-4" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-80">
-                          <div className="space-y-4">
-                            <div>
-                              <label className="text-sm text-muted-foreground">Dashboard Count Range</label>
-                              <Slider
-                                value={dashboardRange}
-                                onValueChange={setDashboardRange}
-                                max={maxDashboards}
-                                step={1}
-                                className="mt-2"
-                              />
-                              <div className="flex justify-between mt-1 text-xs text-muted-foreground">
-                                <span>{dashboardRange[0]}</span>
-                                <span>{dashboardRange[1]}</span>
-                              </div>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <SlidersHorizontal className="h-4 w-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80">
+                        <div className="space-y-4">
+                          <div>
+                            <label className="text-sm text-muted-foreground">Dashboard Count Range</label>
+                            <Slider
+                              value={dashboardRange}
+                              onValueChange={setDashboardRange}
+                              max={maxDashboards}
+                              step={1}
+                              className="mt-2"
+                            />
+                            <div className="flex justify-between mt-1 text-xs text-muted-foreground">
+                              <span>{dashboardRange[0]}</span>
+                              <span>{dashboardRange[1]}</span>
                             </div>
                           </div>
-                        </PopoverContent>
-                      </Popover>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-                      >
-                        {sortOrder === 'asc' ? (
-                          <ChevronUp className="h-4 w-4" />
-                        ) : (
-                          <ChevronDown className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
+                          <div>
+                            <label className="text-sm text-muted-foreground">Sort Order</label>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full mt-1"
+                              onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+                            >
+                              {sortOrder === 'asc' ? (
+                                <ChevronUp className="h-4 w-4 mr-2" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4 mr-2" />
+                              )}
+                              {sortOrder === 'asc' ? 'Ascending' : 'Descending'}
+                            </Button>
+                          </div>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {instance.dashboards || 0} dashboards
