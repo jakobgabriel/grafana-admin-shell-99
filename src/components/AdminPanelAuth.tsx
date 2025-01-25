@@ -27,14 +27,17 @@ const AdminPanelAuth = ({ onAuthenticated }: AdminPanelAuthProps) => {
   const onSubmit = async (data: AdminAuthFormData) => {
     console.log('Attempting to sign in with:', data.email);
     try {
-      const success = await signIn(data);
-      if (success) {
+      const { error } = await signIn(data.email, data.password);
+      
+      if (!error) {
         console.log('Sign in successful');
         onAuthenticated();
         toast({
           title: "Success",
           description: "Successfully authenticated",
         });
+      } else {
+        throw error;
       }
     } catch (error) {
       console.error('Sign in error:', error);
