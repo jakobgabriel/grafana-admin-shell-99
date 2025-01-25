@@ -120,6 +120,23 @@ Required environment variables:
 - `VITE_SUPABASE_URL`: Supabase project URL
 - `VITE_SUPABASE_ANON_KEY`: Supabase anonymous key
 
+## Environment Setup
+
+1. Copy the example environment file:
+```bash
+cp .env.example .env
+```
+
+2. Update the `.env` file with your Supabase credentials:
+```env
+# Get these values from your Supabase project settings
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Set a secure password for the local Supabase instance
+POSTGRES_PASSWORD=your-super-secret-password
+```
+
 ## Contributing
 
 1. Fork the repository

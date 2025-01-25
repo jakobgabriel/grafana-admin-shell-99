@@ -21,7 +21,7 @@ services:
       - "54321:54321"  # REST API
       - "54322:54322"  # Studio
     environment:
-      POSTGRES_PASSWORD: your-super-secret-password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - supabase-data:/var/lib/postgresql/data
       - ./supabase/init.sql:/docker-entrypoint-initdb.d/init.sql
