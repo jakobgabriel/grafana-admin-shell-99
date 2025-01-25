@@ -83,7 +83,6 @@ export const fetchGrafanaData = async (instance: GrafanaInstanceFormData) => {
   console.log('Fetching Grafana data for instance:', instance.name);
   
   try {
-    // Initial search to get all items
     const searchResponse = await fetch(`${instance.url}/api/search`, {
       headers: {
         'Authorization': `Bearer ${instance.apiKey}`,
@@ -110,8 +109,8 @@ export const fetchGrafanaData = async (instance: GrafanaInstanceFormData) => {
       api_key: instance.apiKey,
       folders: folders.length,
       dashboards: dashboards.length,
-      folders_list: folders as Json,
-      dashboards_list: dashboards as Json
+      folders_list: JSON.parse(JSON.stringify(folders)) as Json,
+      dashboards_list: JSON.parse(JSON.stringify(dashboards)) as Json
     };
 
     // Save to Supabase
@@ -132,7 +131,13 @@ export const fetchGrafanaData = async (instance: GrafanaInstanceFormData) => {
     });
 
     console.log('Successfully processed Grafana instance data:', supabaseData);
-    return supabaseData as GrafanaInstance;
+    
+    // Convert back to GrafanaInstance type with proper typing
+    return {
+      ...supabaseData,
+      folders_list: folders,
+      dashboards_list: dashboards
+    } as GrafanaInstance;
 
   } catch (error) {
     console.error('Error fetching Grafana data:', error);
