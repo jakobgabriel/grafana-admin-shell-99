@@ -1,9 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Filter, SlidersHorizontal, ArrowUp, ArrowDown } from "lucide-react";
+import { Filter, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Slider } from "@/components/ui/slider";
 import SearchableTagFilter from './SearchableTagFilter';
 import { GrafanaInstance } from "@/types/grafana";
 
@@ -14,15 +13,10 @@ interface Props {
 const DeploymentMatrix = ({ instances }: Props) => {
   console.log('Rendering DeploymentMatrix with instances:', instances);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [sortField, setSortField] = useState<string | null>(null);
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  
-  // Initialize dashboard range with full range
-  const maxDashboards = useMemo(() => {
-    return Math.max(...instances.map(instance => instance.dashboards || 0));
-  }, [instances]);
-  
-  const [dashboardRange, setDashboardRange] = useState<[number, number]>([0, maxDashboards]);
+  const [sortConfig, setSortConfig] = useState<{
+    key: string;
+    direction: 'asc' | 'desc';
+  } | null>(null);
 
   // Get all unique tags across all instances
   const allTags = useMemo(() => {
@@ -35,75 +29,54 @@ const DeploymentMatrix = ({ instances }: Props) => {
     return Array.from(tagsSet);
   }, [instances]);
 
-  const getTagCombinations = () => {
-    const combinations = new Set<string>();
-    instances.forEach(instance => {
-      (instance.dashboards_list || []).forEach(dashboard => {
-        if (selectedTags.length === 0 || selectedTags.every(tag => dashboard.tags.includes(tag))) {
-          const sortedTags = [...dashboard.tags].sort().join(',');
-          if (sortedTags) combinations.add(sortedTags);
-        }
-      });
-    });
-    return Array.from(combinations);
+  // Count dashboards for each instance and tag
+  const countDashboards = (instance: GrafanaInstance, tag: string) => {
+    return (instance.dashboards_list || []).filter(dashboard => 
+      dashboard.tags.includes(tag)
+    ).length;
   };
 
-  // Count dashboards for each instance and tag combination
-  const countDashboards = (instance: GrafanaInstance, tagCombination: string) => {
-    const tags = tagCombination.split(',');
-    return (instance.dashboards_list || []).filter(dashboard => {
-      const dashboardTags = [...dashboard.tags].sort();
-      return tags.length === dashboardTags.length && 
-             tags.every((tag, index) => tag === dashboardTags[index]);
-    }).length;
-  };
-
-  // Filter and sort instances
+  // Filter instances based on selected tags
   const filteredInstances = useMemo(() => {
-    console.log('Sorting instances with field:', sortField, 'direction:', sortDirection);
-    return [...instances]
-      .filter(instance => {
-        const dashCount = instance.dashboards || 0;
-        return dashCount >= dashboardRange[0] && dashCount <= dashboardRange[1];
-      })
-      .sort((a, b) => {
-        if (!sortField) return 0;
-        
-        if (sortField === 'name') {
-          return sortDirection === 'asc' 
-            ? a.name.localeCompare(b.name)
-            : b.name.localeCompare(a.name);
-        }
-        
-        const aCount = countDashboards(a, sortField);
-        const bCount = countDashboards(b, sortField);
-        
-        // Convert to numbers and compare numerically
-        const aValue = Number(aCount);
-        const bValue = Number(bCount);
-        
-        return sortDirection === 'asc' 
-          ? aValue - bValue 
-          : bValue - aValue;
-      });
-  }, [instances, dashboardRange, sortField, sortDirection, selectedTags]);
-
-  const maxTagDashboards = useMemo(() => {
-    let max = 0;
-    const combinations = getTagCombinations();
-    combinations.forEach(combination => {
-      instances.forEach(instance => {
-        const count = countDashboards(instance, combination);
-        max = Math.max(max, count);
-      });
+    return instances.filter(instance => {
+      if (selectedTags.length === 0) return true;
+      return selectedTags.every(tag => 
+        (instance.dashboards_list || []).some(dashboard => 
+          dashboard.tags.includes(tag)
+        )
+      );
     });
-    return max;
   }, [instances, selectedTags]);
 
-  const getCellColor = (count: number) => {
-    if (count === 0) return 'bg-white';
-    const intensity = Math.min((count / maxTagDashboards) * 100, 100);
-    return `bg-grafana-accent/${Math.round(intensity)}`;
+  // Sort instances based on current sort configuration
+  const sortedInstances = useMemo(() => {
+    if (!sortConfig) return filteredInstances;
+
+    return [...filteredInstances].sort((a, b) => {
+      if (sortConfig.key === 'name') {
+        const comparison = a.name.localeCompare(b.name);
+        return sortConfig.direction === 'asc' ? comparison : -comparison;
+      }
+
+      // For tag-based sorting
+      const aCount = countDashboards(a, sortConfig.key);
+      const bCount = countDashboards(b, sortConfig.key);
+      const comparison = Number(aCount) - Number(bCount);
+      return sortConfig.direction === 'asc' ? comparison : -comparison;
+    });
+  }, [filteredInstances, sortConfig]);
+
+  const handleSort = (key: string) => {
+    console.log('Handling sort for key:', key);
+    setSortConfig(current => {
+      if (current?.key === key) {
+        return {
+          key,
+          direction: current.direction === 'asc' ? 'desc' : 'asc'
+        };
+      }
+      return { key, direction: 'asc' };
+    });
   };
 
   const handleTagSelect = (tag: string) => {
@@ -114,131 +87,95 @@ const DeploymentMatrix = ({ instances }: Props) => {
     );
   };
 
-  const handleSliderChange = (values: number[]) => {
-    if (values.length === 2) {
-      setDashboardRange([values[0], values[1]]);
-    }
-  };
+  // Calculate maximum dashboard count for color intensity
+  const maxDashboards = useMemo(() => {
+    let max = 0;
+    allTags.forEach(tag => {
+      instances.forEach(instance => {
+        const count = countDashboards(instance, tag);
+        max = Math.max(max, count);
+      });
+    });
+    return max;
+  }, [instances, allTags]);
 
-  const handleSort = (field: string) => {
-    console.log('Handling sort for field:', field);
-    if (sortField === field) {
-      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('asc');
-    }
+  const getCellColor = (count: number) => {
+    if (count === 0) return 'bg-white';
+    const intensity = Math.min((count / maxDashboards) * 100, 100);
+    return `bg-grafana-accent/${Math.round(intensity)}`;
   };
-
-  const tagCombinations = getTagCombinations();
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-grafana-text">Deployment Matrix</h2>
-      
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-grafana-text">Deployment Matrix</h2>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm">
+              <Filter className="h-4 w-4 mr-2" />
+              Filter Tags
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-80">
+            <SearchableTagFilter
+              tags={allTags}
+              selectedTags={selectedTags}
+              onTagSelect={handleTagSelect}
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[200px]">
-                Tag Combination
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 ml-2">
-                      <Filter className="h-4 w-4" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-80">
-                    <SearchableTagFilter
-                      tags={allTags}
-                      selectedTags={selectedTags}
-                      onTagSelect={handleTagSelect}
-                    />
-                  </PopoverContent>
-                </Popover>
+              <TableHead 
+                className="w-[200px] cursor-pointer"
+                onClick={() => handleSort('name')}
+              >
+                <div className="flex items-center">
+                  Instance Name
+                  {sortConfig?.key === 'name' && (
+                    sortConfig.direction === 'asc' ? (
+                      <ArrowUp className="h-4 w-4 ml-2" />
+                    ) : (
+                      <ArrowDown className="h-4 w-4 ml-2" />
+                    )
+                  )}
+                </div>
               </TableHead>
-              {filteredInstances.map((instance, idx) => (
+              {allTags.map((tag, index) => (
                 <TableHead 
-                  key={idx} 
-                  className="min-w-[150px] cursor-pointer hover:bg-gray-50"
-                  onClick={() => handleSort('name')}
+                  key={index}
+                  className="cursor-pointer"
+                  onClick={() => handleSort(tag)}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <span>{instance.name}</span>
-                      {sortField === 'name' && (
-                        sortDirection === 'asc' ? (
-                          <ArrowUp className="h-4 w-4 ml-2" />
-                        ) : (
-                          <ArrowDown className="h-4 w-4 ml-2" />
-                        )
-                      )}
-                    </div>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <SlidersHorizontal className="h-4 w-4" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-80">
-                        <div className="space-y-4">
-                          <div>
-                            <label className="text-sm text-muted-foreground">Dashboard Count Range</label>
-                            <div className="mt-6">
-                              <Slider
-                                defaultValue={[0, maxDashboards]}
-                                value={dashboardRange}
-                                onValueChange={handleSliderChange}
-                                max={maxDashboards}
-                                min={0}
-                                step={1}
-                                minStepsBetweenThumbs={1}
-                                className="mt-2"
-                              />
-                            </div>
-                            <div className="flex justify-between mt-1 text-xs text-muted-foreground">
-                              <span>{dashboardRange[0]}</span>
-                              <span>{dashboardRange[1]}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
+                  <div className="flex items-center">
+                    <span className="inline-block bg-grafana-accent/10 text-grafana-accent px-2 py-1 rounded-full text-sm">
+                      {tag}
+                    </span>
+                    {sortConfig?.key === tag && (
+                      sortConfig.direction === 'asc' ? (
+                        <ArrowUp className="h-4 w-4 ml-2" />
+                      ) : (
+                        <ArrowDown className="h-4 w-4 ml-2" />
+                      )
+                    )}
                   </div>
                 </TableHead>
               ))}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {tagCombinations.map((combination, idx) => (
+            {sortedInstances.map((instance, idx) => (
               <TableRow key={idx}>
-                <TableCell 
-                  className="font-medium cursor-pointer hover:bg-gray-50"
-                  onClick={() => handleSort(combination)}
-                >
-                  <div className="flex items-center">
-                    {sortField === combination && (
-                      sortDirection === 'asc' ? (
-                        <ArrowUp className="h-4 w-4 mr-2" />
-                      ) : (
-                        <ArrowDown className="h-4 w-4 mr-2" />
-                      )
-                    )}
-                    {combination.split(',').map((tag, tagIdx) => (
-                      <span 
-                        key={tagIdx}
-                        className="inline-block bg-grafana-accent/10 text-grafana-accent px-2 py-1 rounded-full text-sm mr-1 mb-1"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </TableCell>
-                {filteredInstances.map((instance, instanceIdx) => {
-                  const count = countDashboards(instance, combination);
+                <TableCell className="font-medium">{instance.name}</TableCell>
+                {allTags.map((tag, tagIdx) => {
+                  const count = countDashboards(instance, tag);
                   return (
                     <TableCell 
-                      key={instanceIdx}
+                      key={tagIdx}
                       className={`${getCellColor(count)} transition-colors duration-200`}
                     >
                       {count}
