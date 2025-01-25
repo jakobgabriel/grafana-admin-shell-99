@@ -7,32 +7,10 @@ import {
 } from "@/components/ui/collapsible";
 import GrafanaInstanceCard from "@/components/GrafanaInstanceCard";
 import DashboardCard from "@/components/DashboardCard";
-
-interface DashboardData {
-  title: string;
-  description: string;
-  url: string;
-  tags: string[];
-  folderId?: string;
-}
-
-interface FolderData {
-  id: string;
-  title: string;
-}
-
-interface DemoInstance {
-  name: string;
-  url: string;
-  apiKey: string;
-  folders: number;
-  dashboards: number;
-  foldersList: FolderData[];
-  dashboardsList: DashboardData[];
-}
+import { GrafanaInstance, DashboardData, FolderData } from "@/types/grafana";
 
 interface Props {
-  instances: DemoInstance[];
+  instances: GrafanaInstance[];
   searchQuery: string;
   selectedTags: string[];
   expandedFolders: Record<string, boolean>;
@@ -40,7 +18,7 @@ interface Props {
   onFolderToggle: (folderId: string) => void;
   onInstanceToggle: (instanceName: string) => void;
   onRemoveInstance?: (name: string) => void;
-  onRefreshInstance?: (instance: DemoInstance) => void;
+  onRefreshInstance?: (instance: GrafanaInstance) => void;
 }
 
 const DemoInstances = ({
@@ -55,6 +33,8 @@ const DemoInstances = ({
   onRefreshInstance,
 }: Props) => {
   const filterDashboards = (dashboards: DashboardData[]) => {
+    if (!dashboards) return [];
+    
     return dashboards.filter(dashboard => {
       const matchesSearch = searchQuery === '' || 
         dashboard.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -67,16 +47,19 @@ const DemoInstances = ({
     });
   };
 
-  const renderFolderStructure = (instance: DemoInstance) => {
+  const renderFolderStructure = (instance: GrafanaInstance) => {
+    const foldersList = instance.folders_list || [];
+    const dashboardsList = instance.dashboards_list || [];
+
     const generalDashboards = filterDashboards(
-      instance.dashboardsList.filter(dashboard => !dashboard.folderId || dashboard.folderId === "0")
+      dashboardsList.filter(dashboard => !dashboard.folderId || dashboard.folderId === "0")
     );
 
     return (
       <div className="space-y-2">
-        {instance.foldersList.map((folder) => {
+        {foldersList.map((folder) => {
           const folderDashboards = filterDashboards(
-            instance.dashboardsList.filter(dashboard => dashboard.folderId === folder.id)
+            dashboardsList.filter(dashboard => dashboard.folderId === folder.id)
           );
 
           if (folderDashboards.length === 0) return null;

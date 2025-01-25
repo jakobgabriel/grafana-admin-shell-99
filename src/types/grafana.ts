@@ -7,6 +7,19 @@ export interface GrafanaInstanceFormData {
   organizationId?: string;
 }
 
+export interface DashboardData {
+  title: string;
+  description: string;
+  url: string;
+  tags: string[];
+  folderId?: string;
+}
+
+export interface FolderData {
+  id: string;
+  title: string;
+}
+
 export interface GrafanaInstance {
   id?: string;
   name: string;
@@ -14,8 +27,8 @@ export interface GrafanaInstance {
   api_key: string;
   folders: number;
   dashboards: number;
-  folders_list: Json;
-  dashboards_list: Json;
+  folders_list: FolderData[];
+  dashboards_list: DashboardData[];
   created_at?: string;
   updated_at?: string;
 }

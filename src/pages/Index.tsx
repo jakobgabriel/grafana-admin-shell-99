@@ -107,7 +107,13 @@ const Index = () => {
       }
 
       if (data && data.length > 0) {
-        setInstances(data as GrafanaInstance[]);
+        // Transform the data to ensure folders_list and dashboards_list are arrays
+        const transformedData = data.map(instance => ({
+          ...instance,
+          folders_list: Array.isArray(instance.folders_list) ? instance.folders_list : [],
+          dashboards_list: Array.isArray(instance.dashboards_list) ? instance.dashboards_list : []
+        }));
+        setInstances(transformedData as GrafanaInstance[]);
         await logUserInteraction('load_instances', 'Index', { count: data.length });
       }
     };
@@ -135,8 +141,9 @@ const Index = () => {
     const tagsSet = new Set<string>();
     const allInstances = [...instances, ...demoInstances];
     allInstances.forEach(instance => {
-      instance.dashboards_list.forEach(dashboard => {
-        dashboard.tags.forEach((tag: string) => tagsSet.add(tag));
+      const dashboardsList = Array.isArray(instance.dashboards_list) ? instance.dashboards_list : [];
+      dashboardsList.forEach(dashboard => {
+        dashboard.tags.forEach(tag => tagsSet.add(tag));
       });
     });
     return Array.from(tagsSet);
