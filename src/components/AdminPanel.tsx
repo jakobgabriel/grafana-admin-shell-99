@@ -5,9 +5,9 @@ import AdminPanelAuth from './AdminPanelAuth';
 import AdminPanelForm from './AdminPanelForm';
 import { logUserInteraction } from "@/utils/userInteractions";
 import {
-  Drawer,
-  DrawerContent,
-} from "@/components/ui/drawer";
+  Dialog,
+  DialogContent,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
 
 interface GrafanaInstanceFormData {
@@ -102,15 +102,15 @@ const AdminPanel = ({ isOpen, onClose, onAddInstance }: AdminPanelProps) => {
   };
 
   return (
-    <Drawer open={isOpen} onOpenChange={handleClose}>
-      <DrawerContent className="bg-grafana-background">
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="bg-grafana-background">
         {!isAuthenticated ? (
           <AdminPanelAuth onAuthenticated={handleAuthenticated} />
         ) : (
           <AdminPanelForm form={form} onSubmit={onSubmit} onClose={handleClose} />
         )}
-      </DrawerContent>
-    </Drawer>
+      </DialogContent>
+    </Dialog>
   );
 };
 

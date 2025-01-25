@@ -2,12 +2,11 @@ import React from 'react';
 import { UseFormReturn } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
-  DrawerHeader,
-  DrawerTitle,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerClose,
-} from "@/components/ui/drawer";
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -35,12 +34,12 @@ interface AdminPanelFormProps {
 const AdminPanelForm = ({ form, onSubmit, onClose }: AdminPanelFormProps) => {
   return (
     <>
-      <DrawerHeader>
-        <DrawerTitle>Connect Grafana Instance</DrawerTitle>
-        <DrawerDescription>
+      <DialogHeader>
+        <DialogTitle>Connect Grafana Instance</DialogTitle>
+        <DialogDescription>
           Configure new Grafana instance connections here.
-        </DrawerDescription>
-      </DrawerHeader>
+        </DialogDescription>
+      </DialogHeader>
       <div className="p-4">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -112,12 +111,10 @@ const AdminPanelForm = ({ form, onSubmit, onClose }: AdminPanelFormProps) => {
               )}
             />
 
-            <DrawerFooter>
+            <DialogFooter>
               <Button type="submit" className="bg-grafana-blue hover:bg-grafana-blue/90">Add Instance</Button>
-              <DrawerClose asChild>
-                <Button variant="outline" onClick={onClose}>Cancel</Button>
-              </DrawerClose>
-            </DrawerFooter>
+              <Button variant="outline" onClick={onClose}>Cancel</Button>
+            </DialogFooter>
           </form>
         </Form>
       </div>

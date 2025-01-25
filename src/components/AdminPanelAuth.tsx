@@ -5,10 +5,10 @@ import { useForm } from "react-hook-form";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import {
-  DrawerHeader,
-  DrawerTitle,
-  DrawerDescription,
-} from "@/components/ui/drawer";
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 interface AdminAuthFormData {
   email: string;
@@ -51,12 +51,12 @@ const AdminPanelAuth = ({ onAuthenticated }: AdminPanelAuthProps) => {
 
   return (
     <div className="p-4 bg-grafana-background">
-      <DrawerHeader>
-        <DrawerTitle>Connect Instance</DrawerTitle>
-        <DrawerDescription>
+      <DialogHeader>
+        <DialogTitle>Connect Instance</DialogTitle>
+        <DialogDescription>
           Please authenticate to connect a new Grafana instance
-        </DrawerDescription>
-      </DrawerHeader>
+        </DialogDescription>
+      </DialogHeader>
       
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-4">
         <div className="space-y-2">
