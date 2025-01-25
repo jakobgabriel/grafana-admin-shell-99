@@ -6,6 +6,7 @@ import SearchAndTabs from "@/components/SearchAndTabs";
 import { fetchGrafanaData, logUserInteraction } from "@/utils/grafanaApi";
 import { supabase } from "@/integrations/supabase/client";
 import { GrafanaInstance, GrafanaInstanceFormData, FolderData, DashboardData } from "@/types/grafana";
+import { Json } from "@/integrations/supabase/types";
 
 const STORAGE_KEY = 'grafana-instances';
 
@@ -108,11 +109,25 @@ const Index = () => {
 
       if (data && data.length > 0) {
         // Transform the data to ensure proper typing of folders_list and dashboards_list
-        const transformedData = data.map(instance => ({
-          ...instance,
-          folders_list: (instance.folders_list as FolderData[]) || [],
-          dashboards_list: (instance.dashboards_list as DashboardData[]) || []
-        })) as GrafanaInstance[];
+        const transformedData = data.map(instance => {
+          const foldersList = instance.folders_list as Json[];
+          const dashboardsList = instance.dashboards_list as Json[];
+          
+          return {
+            ...instance,
+            folders_list: Array.isArray(foldersList) ? foldersList.map(folder => ({
+              id: (folder as any).id?.toString() || '',
+              title: (folder as any).title || ''
+            })) as FolderData[] : [],
+            dashboards_list: Array.isArray(dashboardsList) ? dashboardsList.map(dashboard => ({
+              title: (dashboard as any).title || '',
+              description: (dashboard as any).description || '',
+              url: (dashboard as any).url || '',
+              tags: Array.isArray((dashboard as any).tags) ? (dashboard as any).tags : [],
+              folderId: (dashboard as any).folderId?.toString() || '0'
+            })) as DashboardData[] : []
+          };
+        }) as GrafanaInstance[];
 
         setInstances(transformedData);
         await logUserInteraction('load_instances', 'Index', { count: data.length });
