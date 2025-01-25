@@ -3,6 +3,7 @@ import SearchBar from './SearchBar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import InstancesSection from './InstancesSection';
 import OverviewStats from './OverviewStats';
+import DeploymentMatrix from './DeploymentMatrix';
 
 interface SearchAndTabsProps {
   searchQuery: string;
@@ -50,6 +51,7 @@ const SearchAndTabs = ({
         <TabsList>
           <TabsTrigger value="instances">Instances</TabsTrigger>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="matrix">Deployment Matrix</TabsTrigger>
         </TabsList>
         
         <TabsContent value="instances">
@@ -73,6 +75,12 @@ const SearchAndTabs = ({
         <TabsContent value="overview">
           <OverviewStats 
             instances={instances.length > 0 ? instances : demoInstances} 
+          />
+        </TabsContent>
+
+        <TabsContent value="matrix">
+          <DeploymentMatrix 
+            instances={instances.length > 0 ? instances : demoInstances}
           />
         </TabsContent>
       </Tabs>
