@@ -78,9 +78,13 @@ const DeploymentMatrix = ({ instances }: Props) => {
         const aCount = countDashboards(a, sortField);
         const bCount = countDashboards(b, sortField);
         
+        // Convert to numbers and compare numerically
+        const aValue = Number(aCount);
+        const bValue = Number(bCount);
+        
         return sortDirection === 'asc' 
-          ? aCount - bCount 
-          : bCount - aCount;
+          ? aValue - bValue 
+          : bValue - aValue;
       });
   }, [instances, dashboardRange, sortField, sortDirection, selectedTags]);
 
