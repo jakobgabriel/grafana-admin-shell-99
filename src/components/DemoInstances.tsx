@@ -32,13 +32,18 @@ const DemoInstances = ({
   onRemoveInstance,
   onRefreshInstance,
 }: Props) => {
-  const filterDashboards = (dashboards: DashboardData[]) => {
+  const filterDashboards = (dashboards: DashboardData[], folderTitle?: string) => {
     if (!dashboards) return [];
     
     return dashboards.filter(dashboard => {
-      const matchesSearch = searchQuery === '' || 
-        dashboard.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        dashboard.description.toLowerCase().includes(searchQuery.toLowerCase());
+      const searchTerms = searchQuery.toLowerCase().split(' ');
+      
+      const matchesSearch = searchQuery === '' || searchTerms.every(term => 
+        dashboard.title.toLowerCase().includes(term) ||
+        dashboard.description.toLowerCase().includes(term) ||
+        dashboard.tags.some(tag => tag.toLowerCase().includes(term)) ||
+        (folderTitle && folderTitle.toLowerCase().includes(term))
+      );
       
       const matchesTags = selectedTags.length === 0 ||
         dashboard.tags.some(tag => selectedTags.includes(tag));
@@ -59,21 +64,22 @@ const DemoInstances = ({
       <div className="space-y-2">
         {foldersList.map((folder) => {
           const folderDashboards = filterDashboards(
-            dashboardsList.filter(dashboard => dashboard.folderId === folder.id)
+            dashboardsList.filter(dashboard => dashboard.folderId === folder.id),
+            folder.title
           );
 
-          if (folderDashboards.length === 0) return null;
+          if (folderDashboards.length === 0 && searchQuery !== '') return null;
 
           return (
             <Collapsible
               key={folder.id}
-              open={expandedFolders[folder.id]}
+              open={expandedFolders[folder.id] || searchQuery !== ''}
               onOpenChange={() => onFolderToggle(folder.id)}
               className="overflow-hidden"
             >
               <CollapsibleTrigger className="flex items-center w-full p-3 hover:bg-grafana-background/80 transition-colors">
                 <div className="flex items-center gap-2 text-grafana-blue">
-                  {expandedFolders[folder.id] ? (
+                  {expandedFolders[folder.id] || searchQuery !== '' ? (
                     <ChevronDown className="h-4 w-4" />
                   ) : (
                     <ChevronRight className="h-4 w-4" />
@@ -123,12 +129,12 @@ const DemoInstances = ({
       {instances.map((instance, index) => (
         <Collapsible
           key={index}
-          open={expandedInstances[instance.name] !== false}
+          open={expandedInstances[instance.name] !== false || searchQuery !== ''}
           onOpenChange={() => onInstanceToggle(instance.name)}
         >
           <CollapsibleTrigger className="w-full">
             <div className="flex items-center gap-2">
-              {expandedInstances[instance.name] !== false ? (
+              {expandedInstances[instance.name] !== false || searchQuery !== '' ? (
                 <ChevronDown className="h-4 w-4" />
               ) : (
                 <ChevronRight className="h-4 w-4" />
