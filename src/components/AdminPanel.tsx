@@ -38,7 +38,11 @@ const AdminPanel = ({ isOpen, onClose, onAddInstance }: AdminPanelProps) => {
   });
 
   const onSubmit = async (data: GrafanaInstanceFormData) => {
+    console.log('Submitting instance data:', data);
+    console.log('Current admin status:', isAdmin);
+
     if (!isAdmin) {
+      console.error('Unauthorized: User is not an admin');
       toast({
         title: "Unauthorized",
         description: "You must be an admin to perform this action",
@@ -47,23 +51,41 @@ const AdminPanel = ({ isOpen, onClose, onAddInstance }: AdminPanelProps) => {
       return;
     }
 
-    await logUserInteraction({
-      event_type: 'add_grafana_instance',
-      component: 'AdminPanel',
-      details: { instance_name: data.name }
-    });
+    try {
+      await logUserInteraction({
+        event_type: 'add_grafana_instance',
+        component: 'AdminPanel',
+        details: { instance_name: data.name }
+      });
 
-    console.log("Adding new Grafana instance:", data);
-    onAddInstance(data);
-    form.reset();
-    onClose();
+      console.log("Adding new Grafana instance:", data);
+      onAddInstance(data);
+      toast({
+        title: "Success",
+        description: `Added Grafana instance: ${data.name}`,
+      });
+      form.reset();
+      onClose();
+    } catch (error) {
+      console.error('Error adding Grafana instance:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add Grafana instance. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleAuthenticated = () => {
+    console.log('Authentication successful in AdminPanel');
+    setIsAuthenticated(true);
   };
 
   return (
     <Drawer open={isOpen} onOpenChange={onClose}>
       <DrawerContent>
         {!isAuthenticated ? (
-          <AdminPanelAuth onAuthenticated={() => setIsAuthenticated(true)} />
+          <AdminPanelAuth onAuthenticated={handleAuthenticated} />
         ) : (
           <AdminPanelForm form={form} onSubmit={onSubmit} onClose={onClose} />
         )}
