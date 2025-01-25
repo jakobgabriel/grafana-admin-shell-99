@@ -21,6 +21,7 @@ const DashboardsTable = ({ instances }: Props) => {
         });
       });
     });
+    console.log('Processed dashboards:', allDashboards);
     return allDashboards;
   };
 
@@ -42,7 +43,9 @@ const DashboardsTable = ({ instances }: Props) => {
           <TableRow key={`${instance}-${idx}`}>
             <TableCell className="font-medium">{instance}</TableCell>
             <TableCell>{dashboard.title}</TableCell>
-            <TableCell className="max-w-md truncate">{dashboard.description}</TableCell>
+            <TableCell className="max-w-md truncate">
+              {dashboard.description || 'No description available'}
+            </TableCell>
             <TableCell>
               <div className="flex flex-wrap gap-2">
                 {(dashboard.tags || []).map((tag: string) => (
