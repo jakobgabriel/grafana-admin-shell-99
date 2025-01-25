@@ -1,14 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import AdminPanel from "@/components/AdminPanel";
 import Header from "@/components/Header";
 import SearchAndTabs from "@/components/SearchAndTabs";
-import { fetchGrafanaData, logUserInteraction } from "@/utils/grafanaApi";
-import { supabase } from "@/integrations/supabase/client";
-import { GrafanaInstance, GrafanaInstanceFormData, FolderData, DashboardData } from "@/types/grafana";
-import { Json } from "@/integrations/supabase/types";
-
-const STORAGE_KEY = 'grafana-instances';
+import { useGrafanaInstances } from "@/hooks/useGrafanaInstances";
+import { GrafanaInstanceFormData } from "@/types/grafana";
 
 // Demo data
 const demoInstances: GrafanaInstance[] = [
@@ -85,64 +81,24 @@ const demoInstances: GrafanaInstance[] = [
 
 const Index = () => {
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
-  const [instances, setInstances] = useState<GrafanaInstance[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
   const [expandedInstances, setExpandedInstances] = useState<Record<string, boolean>>({});
   const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
 
-  useEffect(() => {
-    const loadInstances = async () => {
-      const { data, error } = await supabase
-        .from('grafana_instances')
-        .select('*');
-      
-      if (error) {
-        console.error('Error loading instances:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load saved instances"
-        });
-        return;
-      }
-
-      if (data && data.length > 0) {
-        // Transform the data to ensure proper typing of folders_list and dashboards_list
-        const transformedData = data.map(instance => {
-          const foldersList = instance.folders_list as Json[];
-          const dashboardsList = instance.dashboards_list as Json[];
-          
-          return {
-            ...instance,
-            folders_list: Array.isArray(foldersList) ? foldersList.map(folder => ({
-              id: (folder as any).id?.toString() || '',
-              title: (folder as any).title || ''
-            })) as FolderData[] : [],
-            dashboards_list: Array.isArray(dashboardsList) ? dashboardsList.map(dashboard => ({
-              title: (dashboard as any).title || '',
-              description: (dashboard as any).description || '',
-              url: (dashboard as any).url || '',
-              tags: Array.isArray((dashboard as any).tags) ? (dashboard as any).tags : [],
-              folderId: (dashboard as any).folderId?.toString() || '0'
-            })) as DashboardData[] : []
-          };
-        }) as GrafanaInstance[];
-
-        setInstances(transformedData);
-        await logUserInteraction('load_instances', 'Index', { count: data.length });
-      }
-    };
-
-    loadInstances();
-  }, []);
+  const {
+    instances,
+    addInstance,
+    removeInstance,
+    refreshInstance
+  } = useGrafanaInstances();
 
   const toggleFolder = (folderId: string) => {
     setExpandedFolders(prev => ({
       ...prev,
       [folderId]: !prev[folderId]
     }));
-    logUserInteraction('toggle_folder', 'Index', { folder_id: folderId });
   };
 
   const toggleInstance = (instanceName: string) => {
@@ -150,10 +106,18 @@ const Index = () => {
       ...prev,
       [instanceName]: !prev[instanceName]
     }));
-    logUserInteraction('toggle_instance', 'Index', { instance_name: instanceName });
   };
 
-  const allTags = useMemo(() => {
+  const handleTagSelect = async (tag: string) => {
+    setSelectedTags(prev => {
+      const newTags = prev.includes(tag) 
+        ? prev.filter(t => t !== tag)
+        : [...prev, tag];
+      return newTags;
+    });
+  };
+
+  const allTags = React.useMemo(() => {
     const tagsSet = new Set<string>();
     const allInstances = [...instances, ...demoInstances];
     allInstances.forEach(instance => {
@@ -164,64 +128,6 @@ const Index = () => {
     });
     return Array.from(tagsSet);
   }, [instances]);
-
-  const handleTagSelect = async (tag: string) => {
-    setSelectedTags(prev => {
-      const newTags = prev.includes(tag) 
-        ? prev.filter(t => t !== tag)
-        : [...prev, tag];
-      logUserInteraction('select_tag', 'Index', { tag, selected: !prev.includes(tag) });
-      return newTags;
-    });
-  };
-
-  const handleAddInstance = async (instance: GrafanaInstanceFormData) => {
-    console.log("Adding new instance:", instance);
-    
-    const data = await fetchGrafanaData(instance);
-    
-    if (data) {
-      setInstances(prev => [...prev, data]);
-      await logUserInteraction('add_instance', 'Index', { instance_name: instance.name });
-      toast({
-        title: "Instance Added",
-        description: `Successfully added ${instance.name} to your instances.`
-      });
-    }
-    
-    setIsAdminPanelOpen(false);
-  };
-
-  const handleRemoveInstance = async (name: string) => {
-    const { error } = await supabase
-      .from('grafana_instances')
-      .delete()
-      .eq('name', name);
-
-    if (error) {
-      console.error('Error removing instance:', error);
-      toast({
-        title: "Error",
-        description: `Failed to remove ${name}`
-      });
-      return;
-    }
-
-    setInstances(prev => prev.filter(instance => instance.name !== name));
-    await logUserInteraction('remove_instance', 'Index', { instance_name: name });
-    toast({
-      title: "Instance Removed",
-      description: `Successfully removed ${name} from your instances.`
-    });
-  };
-
-  const handleRefreshInstance = (updatedInstance: GrafanaInstance) => {
-    setInstances(prev => 
-      prev.map(instance => 
-        instance.name === updatedInstance.name ? updatedInstance : instance
-      )
-    );
-  };
 
   return (
     <div className="container mx-auto p-4">
@@ -239,15 +145,15 @@ const Index = () => {
         onTagSelect={handleTagSelect}
         onFolderToggle={toggleFolder}
         onInstanceToggle={toggleInstance}
-        onRemoveInstance={handleRemoveInstance}
-        onRefreshInstance={handleRefreshInstance}
+        onRemoveInstance={removeInstance}
+        onRefreshInstance={refreshInstance}
         onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
       />
 
       <AdminPanel
         isOpen={isAdminPanelOpen}
         onClose={() => setIsAdminPanelOpen(false)}
-        onAddInstance={handleAddInstance}
+        onAddInstance={addInstance}
       />
     </div>
   );
