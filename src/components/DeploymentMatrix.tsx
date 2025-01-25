@@ -48,22 +48,28 @@ const DeploymentMatrix = ({ instances }: Props) => {
     });
   }, [instances, selectedTags]);
 
-  // Sort instances based on current sort configuration
-  const sortedInstances = useMemo(() => {
-    if (!sortConfig) return filteredInstances;
+  // Sort tags based on current sort configuration
+  const sortedTags = useMemo(() => {
+    if (!sortConfig) return allTags;
 
-    return [...filteredInstances].sort((a, b) => {
-      if (sortConfig.key === 'name') {
-        const comparison = a.name.localeCompare(b.name);
+    return [...allTags].sort((a, b) => {
+      if (sortConfig.key === 'tag') {
+        const comparison = a.localeCompare(b);
         return sortConfig.direction === 'asc' ? comparison : -comparison;
       }
 
-      const aCount = Number(countDashboards(a, sortConfig.key));
-      const bCount = Number(countDashboards(b, sortConfig.key));
+      const aCount = Number(countDashboards(
+        filteredInstances.find(i => i.name === sortConfig.key) || filteredInstances[0],
+        a
+      ));
+      const bCount = Number(countDashboards(
+        filteredInstances.find(i => i.name === sortConfig.key) || filteredInstances[0],
+        b
+      ));
       const comparison = aCount - bCount;
       return sortConfig.direction === 'asc' ? comparison : -comparison;
     });
-  }, [filteredInstances, sortConfig]);
+  }, [allTags, filteredInstances, sortConfig]);
 
   const handleSort = (key: string) => {
     console.log('Handling sort for key:', key);
@@ -125,17 +131,17 @@ const DeploymentMatrix = ({ instances }: Props) => {
         </Popover>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-md border overflow-x-auto">
         <Table>
           <TableHeader className="sticky top-0 bg-white z-10">
             <TableRow>
               <TableHead 
-                className="w-[200px] cursor-pointer"
-                onClick={() => handleSort('name')}
+                className="w-[200px] cursor-pointer sticky left-0 bg-white z-20"
+                onClick={() => handleSort('tag')}
               >
                 <div className="flex items-center">
-                  Instance Name
-                  {sortConfig?.key === 'name' && (
+                  Tags
+                  {sortConfig?.key === 'tag' && (
                     sortConfig.direction === 'asc' ? (
                       <ArrowUp className="h-4 w-4 ml-2" />
                     ) : (
@@ -144,17 +150,15 @@ const DeploymentMatrix = ({ instances }: Props) => {
                   )}
                 </div>
               </TableHead>
-              {allTags.map((tag, index) => (
+              {filteredInstances.map((instance, index) => (
                 <TableHead 
                   key={index}
-                  className="cursor-pointer"
-                  onClick={() => handleSort(tag)}
+                  className="cursor-pointer min-w-[150px]"
+                  onClick={() => handleSort(instance.name)}
                 >
                   <div className="flex items-center">
-                    <span className="inline-block bg-grafana-accent/10 text-grafana-accent px-2 py-1 rounded-full text-sm">
-                      {tag}
-                    </span>
-                    {sortConfig?.key === tag && (
+                    {instance.name}
+                    {sortConfig?.key === instance.name && (
                       sortConfig.direction === 'asc' ? (
                         <ArrowUp className="h-4 w-4 ml-2" />
                       ) : (
@@ -167,16 +171,18 @@ const DeploymentMatrix = ({ instances }: Props) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedInstances.map((instance, idx) => (
+            {sortedTags.map((tag, idx) => (
               <TableRow key={idx}>
-                <TableCell className="font-medium sticky left-0 bg-white">
-                  {instance.name}
+                <TableCell className="font-medium sticky left-0 bg-white z-10">
+                  <span className="inline-block bg-grafana-accent/10 text-grafana-accent px-2 py-1 rounded-full text-sm">
+                    {tag}
+                  </span>
                 </TableCell>
-                {allTags.map((tag, tagIdx) => {
+                {filteredInstances.map((instance, instanceIdx) => {
                   const count = countDashboards(instance, tag);
                   return (
                     <TableCell 
-                      key={tagIdx}
+                      key={instanceIdx}
                       className={`${getCellColor(count)} transition-colors duration-200`}
                     >
                       {count}
