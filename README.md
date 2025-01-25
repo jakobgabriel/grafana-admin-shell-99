@@ -16,93 +16,50 @@ Before you begin, ensure you have installed:
 
 - [Node.js](https://nodejs.org/) (v18 or higher)
 - [npm](https://www.npmjs.com/) (comes with Node.js)
-- [Supabase CLI](https://supabase.com/docs/guides/cli)
+- [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) (for containerized deployment)
 - [Git](https://git-scm.com/)
 
-## Local Development Setup
+## Quick Start with Docker
 
-### 1. Clone the Repository
+The easiest way to get started is using Docker Compose:
 
+1. Clone the repository:
 ```bash
 git clone <your-repo-url>
 cd <repo-name>
 ```
 
-### 2. Install Dependencies
+2. Create a `.env` file with your Supabase credentials:
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+3. Start the application:
+```bash
+docker-compose up -d
+```
+
+The application will be available at `http://localhost:8080`
+
+## Local Development Setup
+
+If you prefer to run the application without Docker:
+
+### 1. Install Dependencies
 
 ```bash
 npm install
 ```
 
-### 3. Set Up Local Supabase
+### 2. Set Up Local Supabase
 
 1. Start Supabase locally:
 ```bash
 supabase start
 ```
 
-2. Create the required tables using the following SQL:
-
-```sql
--- Create grafana_instances table
-CREATE TABLE public.grafana_instances (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
-    name text NOT NULL,
-    url text NOT NULL,
-    api_key text NOT NULL,
-    folders integer DEFAULT 0 NOT NULL,
-    dashboards integer DEFAULT 0 NOT NULL,
-    folders_list jsonb DEFAULT '[]'::jsonb,
-    dashboards_list jsonb DEFAULT '[]'::jsonb,
-    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
-    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
-);
-
--- Create user_interactions table
-CREATE TABLE public.user_interactions (
-    id uuid DEFAULT uuid_generate_v4() NOT NULL,
-    event_type text NOT NULL,
-    component text NOT NULL,
-    details jsonb DEFAULT '{}'::jsonb,
-    created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
-);
-
--- Set up RLS policies for grafana_instances
-ALTER TABLE public.grafana_instances ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Enable read access for all users"
-ON public.grafana_instances
-FOR SELECT
-USING (true);
-
-CREATE POLICY "Enable insert access for all users"
-ON public.grafana_instances
-FOR INSERT
-WITH CHECK (true);
-
-CREATE POLICY "Enable update access for all users"
-ON public.grafana_instances
-FOR UPDATE
-USING (true);
-
-CREATE POLICY "Enable delete access for all users"
-ON public.grafana_instances
-FOR DELETE
-USING (true);
-
--- Set up RLS policies for user_interactions
-ALTER TABLE public.user_interactions ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Enable read access for all users"
-ON public.user_interactions
-FOR SELECT
-USING (true);
-
-CREATE POLICY "Enable insert access for all users"
-ON public.user_interactions
-FOR INSERT
-WITH CHECK (true);
-```
+2. Create the required tables using the SQL from the setup instructions.
 
 3. Update the Supabase client configuration:
 
@@ -113,18 +70,11 @@ VITE_SUPABASE_URL=<your-local-supabase-url>
 VITE_SUPABASE_ANON_KEY=<your-local-supabase-anon-key>
 ```
 
-You can find these values by running:
-```bash
-supabase status
-```
-
-### 4. Start the Development Server
+### 3. Start the Development Server
 
 ```bash
 npm run dev
 ```
-
-The application will be available at `http://localhost:8080`.
 
 ## Project Structure
 
@@ -137,26 +87,33 @@ src/
 └── utils/           # Utility functions
 ```
 
-## Key Components
+## Deployment Options
 
-- `InstancesSection`: Main component for displaying Grafana instances
-- `OverviewStats`: Statistics and metrics display
-- `SearchAndTabs`: Search functionality and tab navigation
-- `useGrafanaInstances`: Hook for managing Grafana instance data
+### 1. Docker Deployment (Recommended)
 
-## Deployment
+The application can be deployed using Docker Compose:
 
-### Production Deployment
+```bash
+# Build and start containers
+docker-compose up -d
 
-1. Set up a production Supabase project
-2. Update environment variables for production
-3. Build and deploy:
+# View logs
+docker-compose logs -f
 
+# Stop containers
+docker-compose down
+```
+
+### 2. Manual Deployment
+
+1. Build the application:
 ```bash
 npm run build
 ```
 
-### Environment Variables
+2. Deploy the contents of the `dist` directory to your web server.
+
+## Environment Variables
 
 Required environment variables:
 

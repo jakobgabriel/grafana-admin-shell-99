@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+    depends_on:
+      - supabase
+    networks:
+      - grafana-network
+
+  supabase:
+    image: supabase/supabase-local:latest
+    ports:
+      - "54321:54321"  # REST API
+      - "54322:54322"  # Studio
+    environment:
+      POSTGRES_PASSWORD: your-super-secret-password
+    volumes:
+      - supabase-data:/var/lib/postgresql/data
+    networks:
+      - grafana-network
+
+volumes:
+  supabase-data:
+
+networks:
+  grafana-network:
+    driver: bridge
