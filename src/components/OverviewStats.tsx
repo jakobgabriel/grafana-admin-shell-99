@@ -31,10 +31,10 @@ interface Props {
 }
 
 const OverviewStats = ({ instances }: Props) => {
-  const getTagStats = (dashboards: DashboardData[]) => {
+  const getTagStats = (dashboards: DashboardData[] = []) => {
     const tagCount: Record<string, number> = {};
     dashboards.forEach(dashboard => {
-      dashboard.tags.forEach(tag => {
+      (dashboard.tags || []).forEach(tag => {
         tagCount[tag] = (tagCount[tag] || 0) + 1;
       });
     });
@@ -43,7 +43,7 @@ const OverviewStats = ({ instances }: Props) => {
 
   return (
     <div className="space-y-6">
-      {instances.map((instance) => (
+      {(instances || []).map((instance) => (
         <div key={instance.name} className="space-y-4">
           <div className="flex items-center gap-2 text-lg font-semibold">
             <Database className="h-5 w-5" />
@@ -53,7 +53,7 @@ const OverviewStats = ({ instances }: Props) => {
           <div className="grid gap-4 md:grid-cols-3">
             <div className="flex items-center gap-2 p-4 bg-grafana-card rounded-lg">
               <ChartBar className="h-5 w-5 text-grafana-blue" />
-              <span>{instance.dashboards} Dashboards</span>
+              <span>{instance.dashboards || 0} Dashboards</span>
             </div>
             <div className="flex items-center gap-2 p-4 bg-grafana-card rounded-lg">
               <Tag className="h-5 w-5 text-grafana-blue" />
@@ -76,12 +76,12 @@ const OverviewStats = ({ instances }: Props) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {instance.dashboardsList.map((dashboard, idx) => (
+              {(instance.dashboardsList || []).map((dashboard, idx) => (
                 <TableRow key={idx}>
                   <TableCell>{dashboard.title}</TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-2">
-                      {dashboard.tags.map((tag) => (
+                      {(dashboard.tags || []).map((tag) => (
                         <Badge key={tag} variant="secondary" className="text-xs">
                           {tag}
                         </Badge>
