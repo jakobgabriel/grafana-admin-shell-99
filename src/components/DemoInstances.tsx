@@ -40,6 +40,7 @@ interface Props {
   onFolderToggle: (folderId: string) => void;
   onInstanceToggle: (instanceName: string) => void;
   onRemoveInstance?: (name: string) => void;
+  onRefreshInstance?: (instance: DemoInstance) => void;
 }
 
 const DemoInstances = ({
@@ -51,6 +52,7 @@ const DemoInstances = ({
   onFolderToggle,
   onInstanceToggle,
   onRemoveInstance,
+  onRefreshInstance,
 }: Props) => {
   const filterDashboards = (dashboards: DashboardData[]) => {
     return dashboards.filter(dashboard => {
@@ -151,6 +153,7 @@ const DemoInstances = ({
               <GrafanaInstanceCard 
                 instance={instance} 
                 onRemove={onRemoveInstance}
+                onRefresh={onRefreshInstance}
               />
             </div>
           </CollapsibleTrigger>

@@ -1,67 +1,67 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { FolderOpen, Link as LinkIcon, Trash2 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { RefreshCw, Trash2 } from "lucide-react";
+import { logUserInteraction, refreshGrafanaInstance } from "@/utils/grafanaApi";
 
-interface GrafanaInstance {
+interface Instance {
   name: string;
   url: string;
+  apiKey: string;
   folders: number;
   dashboards: number;
 }
 
 interface Props {
-  instance: GrafanaInstance;
+  instance: Instance;
   onRemove?: (name: string) => void;
+  onRefresh?: (instance: Instance) => void;
 }
 
-const GrafanaInstanceCard = ({ instance, onRemove }: Props) => {
+const GrafanaInstanceCard = ({ instance, onRemove, onRefresh }: Props) => {
+  const handleRemove = async () => {
+    if (onRemove) {
+      await logUserInteraction('remove_instance', 'GrafanaInstanceCard', { instance_name: instance.name });
+      onRemove(instance.name);
+    }
+  };
+
+  const handleRefresh = async () => {
+    await logUserInteraction('refresh_instance', 'GrafanaInstanceCard', { instance_name: instance.name });
+    const refreshedData = await refreshGrafanaInstance(instance);
+    if (refreshedData && onRefresh) {
+      onRefresh(refreshedData);
+    }
+  };
+
   return (
-    <Card className="bg-grafana-card text-grafana-text hover:shadow-xl transition-all duration-200 w-full border-grafana-accent/30">
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span className="text-grafana-text font-semibold">{instance.name}</span>
-          <div className="flex items-center gap-2">
-            {onRemove && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRemove(instance.name);
-                }}
-                className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-              >
-                <Trash2 size={16} />
-              </Button>
-            )}
-            <a 
-              href={instance.url} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-grafana-blue hover:text-grafana-accent transition-colors p-2 rounded-full hover:bg-grafana-accent/10"
+    <Card className="w-full">
+      <CardContent className="flex items-center justify-between p-4">
+        <div>
+          <h3 className="font-semibold">{instance.name}</h3>
+          <p className="text-sm text-muted-foreground">
+            {instance.folders} folders, {instance.dashboards} dashboards
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleRefresh}
+            className="text-grafana-blue hover:text-grafana-accent hover:bg-grafana-accent/10"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+          {onRemove && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleRemove}
+              className="text-red-500 hover:text-red-600 hover:bg-red-50"
             >
-              <LinkIcon size={16} />
-            </a>
-          </div>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="flex gap-4">
-          <Badge 
-            variant="secondary" 
-            className="flex items-center gap-2 bg-grafana-accent/20 text-grafana-text hover:bg-grafana-accent/30"
-          >
-            <FolderOpen size={14} />
-            {instance.folders} Folders
-          </Badge>
-          <Badge 
-            variant="secondary"
-            className="bg-grafana-accent/20 text-grafana-text hover:bg-grafana-accent/30"
-          >
-            {instance.dashboards} Dashboards
-          </Badge>
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

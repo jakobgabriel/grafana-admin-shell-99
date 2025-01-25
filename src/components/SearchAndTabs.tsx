@@ -17,6 +17,7 @@ interface SearchAndTabsProps {
   onFolderToggle: (folderId: string) => void;
   onInstanceToggle: (instanceName: string) => void;
   onRemoveInstance: (name: string) => void;
+  onRefreshInstance: (instance: any) => void;
   onOpenAdminPanel: () => void;
 }
 
@@ -33,6 +34,7 @@ const SearchAndTabs = ({
   onFolderToggle,
   onInstanceToggle,
   onRemoveInstance,
+  onRefreshInstance,
   onOpenAdminPanel,
 }: SearchAndTabsProps) => {
   return (
@@ -63,6 +65,7 @@ const SearchAndTabs = ({
             onFolderToggle={onFolderToggle}
             onInstanceToggle={onInstanceToggle}
             onRemoveInstance={onRemoveInstance}
+            onRefreshInstance={onRefreshInstance}
             onOpenAdminPanel={onOpenAdminPanel}
           />
         </TabsContent>

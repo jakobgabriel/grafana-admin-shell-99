@@ -3,7 +3,8 @@ import { useToast } from "@/hooks/use-toast";
 import AdminPanel from "@/components/AdminPanel";
 import Header from "@/components/Header";
 import SearchAndTabs from "@/components/SearchAndTabs";
-import { fetchGrafanaData } from "@/utils/grafanaApi";
+import { fetchGrafanaData, logUserInteraction } from "@/utils/grafanaApi";
+import { supabase } from "@/integrations/supabase/client";
 
 interface GrafanaInstanceFormData {
   name: string;
@@ -104,30 +105,35 @@ const Index = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const savedInstances = localStorage.getItem(STORAGE_KEY);
-    if (savedInstances) {
-      const parsedInstances = JSON.parse(savedInstances);
-      setInstances(parsedInstances);
-      parsedInstances.forEach(async (instance: GrafanaInstance) => {
-        const data = await fetchGrafanaData(instance);
-        if (data) {
-          setInstances(prev => 
-            prev.map(i => i.name === instance.name ? data : i)
-          );
-        }
-      });
-    }
-  }, []);
+    const loadInstances = async () => {
+      const { data, error } = await supabase
+        .from('grafana_instances')
+        .select('*');
+      
+      if (error) {
+        console.error('Error loading instances:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load saved instances"
+        });
+        return;
+      }
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(instances));
-  }, [instances]);
+      if (data && data.length > 0) {
+        setInstances(data);
+        await logUserInteraction('load_instances', 'Index', { count: data.length });
+      }
+    };
+
+    loadInstances();
+  }, []);
 
   const toggleFolder = (folderId: string) => {
     setExpandedFolders(prev => ({
       ...prev,
       [folderId]: !prev[folderId]
     }));
+    logUserInteraction('toggle_folder', 'Index', { folder_id: folderId });
   };
 
   const toggleInstance = (instanceName: string) => {
@@ -135,6 +141,7 @@ const Index = () => {
       ...prev,
       [instanceName]: !prev[instanceName]
     }));
+    logUserInteraction('toggle_instance', 'Index', { instance_name: instanceName });
   };
 
   const allTags = useMemo(() => {
@@ -148,12 +155,13 @@ const Index = () => {
     return Array.from(tagsSet);
   }, [instances]);
 
-  const handleTagSelect = (tag: string) => {
+  const handleTagSelect = async (tag: string) => {
     setSelectedTags(prev => {
-      if (prev.includes(tag)) {
-        return prev.filter(t => t !== tag);
-      }
-      return [...prev, tag];
+      const newTags = prev.includes(tag) 
+        ? prev.filter(t => t !== tag)
+        : [...prev, tag];
+      logUserInteraction('select_tag', 'Index', { tag, selected: !prev.includes(tag) });
+      return newTags;
     });
   };
 
@@ -164,6 +172,7 @@ const Index = () => {
     
     if (data) {
       setInstances(prev => [...prev, data]);
+      await logUserInteraction('add_instance', 'Index', { instance_name: instance.name });
       toast({
         title: "Instance Added",
         description: `Successfully added ${instance.name} to your instances.`
@@ -173,12 +182,35 @@ const Index = () => {
     setIsAdminPanelOpen(false);
   };
 
-  const handleRemoveInstance = (name: string) => {
+  const handleRemoveInstance = async (name: string) => {
+    const { error } = await supabase
+      .from('grafana_instances')
+      .delete()
+      .eq('name', name);
+
+    if (error) {
+      console.error('Error removing instance:', error);
+      toast({
+        title: "Error",
+        description: `Failed to remove ${name}`
+      });
+      return;
+    }
+
     setInstances(prev => prev.filter(instance => instance.name !== name));
+    await logUserInteraction('remove_instance', 'Index', { instance_name: name });
     toast({
       title: "Instance Removed",
       description: `Successfully removed ${name} from your instances.`
     });
+  };
+
+  const handleRefreshInstance = (updatedInstance: GrafanaInstance) => {
+    setInstances(prev => 
+      prev.map(instance => 
+        instance.name === updatedInstance.name ? updatedInstance : instance
+      )
+    );
   };
 
   return (
@@ -198,6 +230,7 @@ const Index = () => {
         onFolderToggle={toggleFolder}
         onInstanceToggle={toggleInstance}
         onRemoveInstance={handleRemoveInstance}
+        onRefreshInstance={handleRefreshInstance}
         onOpenAdminPanel={() => setIsAdminPanelOpen(true)}
       />
 

@@ -15,6 +15,7 @@ interface InstancesSectionProps {
   onFolderToggle: (folderId: string) => void;
   onInstanceToggle: (instanceName: string) => void;
   onRemoveInstance: (name: string) => void;
+  onRefreshInstance: (instance: any) => void;
   onOpenAdminPanel: () => void;
 }
 
@@ -30,6 +31,7 @@ const InstancesSection = ({
   onFolderToggle,
   onInstanceToggle,
   onRemoveInstance,
+  onRefreshInstance,
   onOpenAdminPanel,
 }: InstancesSectionProps) => {
   if (instances.length === 0) {
@@ -75,6 +77,7 @@ const InstancesSection = ({
         onFolderToggle={onFolderToggle}
         onInstanceToggle={onInstanceToggle}
         onRemoveInstance={onRemoveInstance}
+        onRefreshInstance={onRefreshInstance}
       />
     </div>
   );

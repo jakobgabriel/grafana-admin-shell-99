@@ -9,7 +9,69 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      grafana_instances: {
+        Row: {
+          api_key: string
+          created_at: string
+          dashboards: number
+          dashboards_list: Json | null
+          folders: number
+          folders_list: Json | null
+          id: string
+          name: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          api_key: string
+          created_at?: string
+          dashboards?: number
+          dashboards_list?: Json | null
+          folders?: number
+          folders_list?: Json | null
+          id?: string
+          name: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          api_key?: string
+          created_at?: string
+          dashboards?: number
+          dashboards_list?: Json | null
+          folders?: number
+          folders_list?: Json | null
+          id?: string
+          name?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      user_interactions: {
+        Row: {
+          component: string
+          created_at: string
+          details: Json | null
+          event_type: string
+          id: string
+        }
+        Insert: {
+          component: string
+          created_at?: string
+          details?: Json | null
+          event_type: string
+          id?: string
+        }
+        Update: {
+          component?: string
+          created_at?: string
+          details?: Json | null
+          event_type?: string
+          id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
