@@ -37,9 +37,8 @@ const AdminPanel = ({ isOpen, onClose, onAddInstance }: AdminPanelProps) => {
     },
   });
 
-  // Handle panel close and auto logout
   const handleClose = async () => {
-    console.log('Closing admin panel and logging out');
+    console.log('Closing connect instance panel and logging out');
     try {
       await signOut();
       setIsAuthenticated(false);
@@ -75,7 +74,7 @@ const AdminPanel = ({ isOpen, onClose, onAddInstance }: AdminPanelProps) => {
     try {
       await logUserInteraction({
         event_type: 'add_grafana_instance',
-        component: 'AdminPanel',
+        component: 'ConnectInstance',
         details: { instance_name: data.name }
       });
 
@@ -98,13 +97,13 @@ const AdminPanel = ({ isOpen, onClose, onAddInstance }: AdminPanelProps) => {
   };
 
   const handleAuthenticated = () => {
-    console.log('Authentication successful in AdminPanel');
+    console.log('Authentication successful in ConnectInstance');
     setIsAuthenticated(true);
   };
 
   return (
     <Drawer open={isOpen} onOpenChange={handleClose}>
-      <DrawerContent>
+      <DrawerContent className="bg-grafana-background">
         {!isAuthenticated ? (
           <AdminPanelAuth onAuthenticated={handleAuthenticated} />
         ) : (

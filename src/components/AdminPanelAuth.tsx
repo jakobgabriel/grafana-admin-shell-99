@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/drawer";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 
 interface AdminPanelAuthProps {
   onAuthenticated: () => void;
@@ -56,9 +55,9 @@ const AdminPanelAuth = ({ onAuthenticated }: AdminPanelAuthProps) => {
   return (
     <div className="grid gap-4 py-4">
       <DrawerHeader>
-        <DrawerTitle>Admin Authentication Required</DrawerTitle>
+        <DrawerTitle>Authentication Required</DrawerTitle>
         <DrawerDescription>
-          Please sign in with your admin credentials to continue.
+          Please sign in with your credentials to connect a new Grafana instance.
         </DrawerDescription>
       </DrawerHeader>
       <form onSubmit={handleSubmit} className="space-y-4 px-4">
@@ -70,6 +69,7 @@ const AdminPanelAuth = ({ onAuthenticated }: AdminPanelAuthProps) => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            className="bg-white"
           />
         </div>
         <div className="grid gap-2">
@@ -80,9 +80,14 @@ const AdminPanelAuth = ({ onAuthenticated }: AdminPanelAuthProps) => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            className="bg-white"
           />
         </div>
-        <Button type="submit" disabled={isLoading}>
+        <Button 
+          type="submit" 
+          disabled={isLoading}
+          className="w-full bg-grafana-blue hover:bg-grafana-blue/90"
+        >
           {isLoading ? "Authenticating..." : "Sign In"}
         </Button>
       </form>

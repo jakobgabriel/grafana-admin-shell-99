@@ -36,7 +36,7 @@ const AdminPanelForm = ({ form, onSubmit, onClose }: AdminPanelFormProps) => {
   return (
     <>
       <DrawerHeader>
-        <DrawerTitle>Admin Panel - Add Grafana Instance</DrawerTitle>
+        <DrawerTitle>Connect Grafana Instance</DrawerTitle>
         <DrawerDescription>
           Configure new Grafana instance connections here.
         </DrawerDescription>
@@ -51,7 +51,7 @@ const AdminPanelForm = ({ form, onSubmit, onClose }: AdminPanelFormProps) => {
                 <FormItem>
                   <FormLabel>Instance Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Production" {...field} />
+                    <Input placeholder="Production" {...field} className="bg-white" />
                   </FormControl>
                   <FormDescription>
                     A friendly name for this Grafana instance
@@ -68,7 +68,7 @@ const AdminPanelForm = ({ form, onSubmit, onClose }: AdminPanelFormProps) => {
                 <FormItem>
                   <FormLabel>Grafana URL</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://grafana.your-domain.com" {...field} />
+                    <Input placeholder="https://grafana.your-domain.com" {...field} className="bg-white" />
                   </FormControl>
                   <FormDescription>
                     The base URL of your Grafana instance
@@ -85,7 +85,7 @@ const AdminPanelForm = ({ form, onSubmit, onClose }: AdminPanelFormProps) => {
                 <FormItem>
                   <FormLabel>API Key</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="eyJr..." {...field} />
+                    <Input type="password" placeholder="eyJr..." {...field} className="bg-white" />
                   </FormControl>
                   <FormDescription>
                     Grafana API key with viewer permissions
@@ -102,7 +102,7 @@ const AdminPanelForm = ({ form, onSubmit, onClose }: AdminPanelFormProps) => {
                 <FormItem>
                   <FormLabel>Organization ID (Optional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="1" {...field} />
+                    <Input placeholder="1" {...field} className="bg-white" />
                   </FormControl>
                   <FormDescription>
                     Optional: Specific organization ID if needed
@@ -113,9 +113,9 @@ const AdminPanelForm = ({ form, onSubmit, onClose }: AdminPanelFormProps) => {
             />
 
             <DrawerFooter>
-              <Button type="submit">Add Instance</Button>
+              <Button type="submit" className="bg-grafana-blue hover:bg-grafana-blue/90">Add Instance</Button>
               <DrawerClose asChild>
-                <Button variant="outline">Cancel</Button>
+                <Button variant="outline" onClick={onClose}>Cancel</Button>
               </DrawerClose>
             </DrawerFooter>
           </form>
