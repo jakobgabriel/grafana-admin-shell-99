@@ -13,6 +13,7 @@ interface Props {
 const DeploymentMatrix = ({ instances }: Props) => {
   console.log('Rendering DeploymentMatrix with instances:', instances);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [sortConfig, setSortConfig] = useState<{
     key: string;
     direction: 'asc' | 'desc';
@@ -43,6 +44,14 @@ const DeploymentMatrix = ({ instances }: Props) => {
     return Array.from(combinationsSet);
   }, [instances]);
 
+  // Filter tag combinations based on search query
+  const filteredTagCombinations = useMemo(() => {
+    if (!searchQuery) return tagCombinations;
+    return tagCombinations.filter(combination =>
+      combination.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [tagCombinations, searchQuery]);
+
   // Count dashboards for each instance and tag combination
   const countDashboards = (instance: GrafanaInstance, tagCombination: string) => {
     const tagSet = new Set(tagCombination.split(', '));
@@ -67,9 +76,9 @@ const DeploymentMatrix = ({ instances }: Props) => {
 
   // Sort tag combinations based on current sort configuration
   const sortedTagCombinations = useMemo(() => {
-    if (!sortConfig) return tagCombinations;
+    if (!sortConfig) return filteredTagCombinations;
 
-    return [...tagCombinations].sort((a, b) => {
+    return [...filteredTagCombinations].sort((a, b) => {
       if (sortConfig.key === 'tag') {
         const comparison = a.localeCompare(b);
         return sortConfig.direction === 'asc' ? comparison : -comparison;
@@ -86,7 +95,7 @@ const DeploymentMatrix = ({ instances }: Props) => {
       const comparison = aCount - bCount;
       return sortConfig.direction === 'asc' ? comparison : -comparison;
     });
-  }, [tagCombinations, filteredInstances, sortConfig]);
+  }, [filteredTagCombinations, filteredInstances, sortConfig]);
 
   const handleSort = (key: string) => {
     console.log('Handling sort for key:', key);
@@ -131,21 +140,30 @@ const DeploymentMatrix = ({ instances }: Props) => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-grafana-text">Deployment Matrix</h2>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" size="sm">
-              <Filter className="h-4 w-4 mr-2" />
-              Filter Tags
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-80">
-            <SearchableTagFilter
-              tags={allTags}
-              selectedTags={selectedTags}
-              onTagSelect={handleTagSelect}
-            />
-          </PopoverContent>
-        </Popover>
+        <div className="flex gap-4">
+          <input
+            type="text"
+            placeholder="Search tags..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="px-3 py-1 border rounded-md"
+          />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Filter className="h-4 w-4 mr-2" />
+                Filter Tags
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80">
+              <SearchableTagFilter
+                tags={allTags}
+                selectedTags={selectedTags}
+                onTagSelect={handleTagSelect}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
 
       <div className="rounded-md border overflow-x-auto">
