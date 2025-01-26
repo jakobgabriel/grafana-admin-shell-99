@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GrafanaInstance } from "@/types/grafana";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Tag } from 'lucide-react';
 
 interface Props {
   instances: GrafanaInstance[];
@@ -38,12 +38,12 @@ const InstanceCharts = ({ instances }: Props) => {
       .sort((a, b) => b.count - a.count);
   };
 
-  const getMostUsedTag = (instance: GrafanaInstance) => {
+  const getTopThreeTags = (instance: GrafanaInstance) => {
     const tagData = prepareTagData(instance);
-    return tagData.length > 0 ? {
-      tag: tagData[0].tag,
-      count: tagData[0].count
-    } : null;
+    return tagData.slice(0, 3).map(({ tag, count }) => ({
+      tag,
+      count,
+    }));
   };
 
   const toggleInstance = (instanceName: string) => {
@@ -56,7 +56,7 @@ const InstanceCharts = ({ instances }: Props) => {
   return (
     <div className="space-y-6">
       {instances.map(instance => {
-        const mostUsedTag = getMostUsedTag(instance);
+        const topTags = getTopThreeTags(instance);
         
         return (
           <Card key={instance.name} className="overflow-hidden">
@@ -74,11 +74,24 @@ const InstanceCharts = ({ instances }: Props) => {
                   )}
                 </button>
               </div>
-              {mostUsedTag && (
-                <div className="text-sm text-muted-foreground mt-2">
-                  Most used tag: <span className="font-medium">{mostUsedTag.tag}</span> ({mostUsedTag.count} dashboards)
-                </div>
-              )}
+              <div className="grid gap-4 md:grid-cols-3 mt-4">
+                {topTags.map((tagData, index) => (
+                  <Card key={index}>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">
+                        Top Tag {index + 1}
+                      </CardTitle>
+                      <Tag className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{tagData.tag}</div>
+                      <p className="text-xs text-muted-foreground">
+                        {tagData.count} dashboards
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </CardHeader>
             
             {expandedInstances[instance.name] && (
