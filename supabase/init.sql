@@ -76,14 +76,3 @@ AS $$
       AND role = _role
   );
 $$;
-
--- Create initial admin user (optional, uncomment and modify as needed)
--- INSERT INTO auth.users (email, encrypted_password, email_confirmed_at)
--- VALUES ('admin@example.com', crypt('admin-password', gen_salt('bf')), now())
--- ON CONFLICT DO NOTHING;
-
--- INSERT INTO public.user_roles (user_id, role)
--- SELECT id, 'admin'::app_role
--- FROM auth.users
--- WHERE email = 'admin@example.com'
--- ON CONFLICT DO NOTHING;
