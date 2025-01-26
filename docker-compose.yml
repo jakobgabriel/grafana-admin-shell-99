@@ -1,3 +1,4 @@
+version: "3.8"
 services:
   app:
     build:
@@ -9,25 +10,103 @@ services:
       - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
       - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
     depends_on:
-      - supabase
+      - supabase-db
+      - supabase-studio
     networks:
       - grafana-network
 
-  supabase:
-    image: supabase/studio:latest
+  supabase-db:
+    image: supabase/postgres:15.1.0.117
     ports:
-      - "54321:54321"  # REST API
-      - "54322:54322"  # Studio
+      - "5432:5432"
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: your-super-secret-jwt-token-with-at-least-32-characters-long
     volumes:
-      - supabase-data:/var/lib/postgresql/data
       - ./supabase/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - supabase-db-data:/var/lib/postgresql/data
+    networks:
+      - grafana-network
+
+  supabase-studio:
+    image: supabase/studio:20240115-9d177ad
+    ports:
+      - "54323:3000"
+    environment:
+      SUPABASE_URL: http://kong:8000
+      STUDIO_PG_META_URL: http://meta:8080
+      SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+      SUPABASE_SERVICE_KEY: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwiaWF0IjoxNjQxNzY5MjAwLCJleHAiOjE3OTk1MzkyMDAsInJvbGUiOiJzZXJ2aWNlX3JvbGUifQ.DaYlNEoUrrEn2Ig7tqibS-PHK5vgusbcbo7X36XVt4Q
+    depends_on:
+      - supabase-db
+      - kong
+      - auth
+      - rest
+      - meta
+    networks:
+      - grafana-network
+
+  kong:
+    image: kong:2.8.1
+    ports:
+      - "8000:8000/tcp"
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /var/lib/kong/kong.yml
+      KONG_DNS_ORDER: LAST,A,CNAME
+      KONG_PLUGINS: request-transformer,cors,key-auth,acl
+    volumes:
+      - ./volumes/kong.yml:/var/lib/kong/kong.yml
+    networks:
+      - grafana-network
+
+  auth:
+    image: supabase/gotrue:v2.132.3
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      API_EXTERNAL_URL: http://localhost:8000
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_HOST: supabase-db
+      GOTRUE_DB_PORT: 5432
+      GOTRUE_DB_NAME: postgres
+      GOTRUE_DB_USER: postgres
+      GOTRUE_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      GOTRUE_SITE_URL: http://localhost:3000
+      GOTRUE_JWT_SECRET: your-super-secret-jwt-token-with-at-least-32-characters-long
+      GOTRUE_JWT_EXP: 3600
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_DISABLE_SIGNUP: "false"
+    depends_on:
+      - supabase-db
+    networks:
+      - grafana-network
+
+  rest:
+    image: postgrest/postgrest:v11.2.0
+    environment:
+      PGRST_DB_URI: postgres://postgres:${POSTGRES_PASSWORD}@supabase-db:5432/postgres
+      PGRST_DB_SCHEMA: public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: your-super-secret-jwt-token-with-at-least-32-characters-long
+    depends_on:
+      - supabase-db
+    networks:
+      - grafana-network
+
+  meta:
+    image: supabase/postgres-meta:v0.68.0
+    environment:
+      PG_META_PORT: 8080
+      PG_META_DB_HOST: supabase-db
+      PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      - supabase-db
     networks:
       - grafana-network
 
 volumes:
-  supabase-data:
+  supabase-db-data:
 
 networks:
   grafana-network:
