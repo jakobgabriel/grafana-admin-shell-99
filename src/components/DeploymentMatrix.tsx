@@ -27,7 +27,7 @@ const DeploymentMatrix = ({ instances }: Props) => {
   const allTags = useMemo(() => getAllTags(instances), [instances]);
   const tagCombinations = useMemo(() => getTagCombinations(instances), [instances]);
 
-  const calculateOverallCoverage = () => {
+  const calculateOverallCoverage = (): string => {
     // Calculate average number of dashboards across instances
     const totalDashboards = instances.reduce((sum, instance) => 
       sum + (instance.dashboards_list?.length || 0), 0
@@ -90,27 +90,24 @@ const DeploymentMatrix = ({ instances }: Props) => {
     // Scale up slightly to reflect real-world usage patterns
     const scalingFactor = 1.2; // Adjust this to fine-tune the final number
     return relevantCombinations > 0 
-      ? Math.min((totalCoverage * scalingFactor).toFixed(1), 100)
+      ? Math.min(totalCoverage * scalingFactor, 100).toFixed(1)
       : "0";
   };
 
   const filteredTagCombinations = useMemo(() => {
     let filtered = tagCombinations;
     
-    // Apply tag filter first - only show combinations that contain ALL selected tags
     if (selectedTags.length > 0) {
       filtered = filtered.filter(combination => {
         const combinationTags = new Set(combination.split(', '));
         return selectedTags.every(tag => combinationTags.has(tag));
       });
 
-      // If no combinations match the selected tags, return empty array
       if (filtered.length === 0) {
         return [];
       }
     }
     
-    // Then apply search filter
     if (searchQuery) {
       filtered = filtered.filter(combination =>
         combination.toLowerCase().includes(searchQuery.toLowerCase())
