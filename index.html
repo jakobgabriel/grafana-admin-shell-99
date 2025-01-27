@@ -4,54 +4,48 @@ title: Home
 ---
 
 <div class="home">
-    <h1>Grafana Dashboard Explorer</h1>
+    <div class="hero-section">
+        <h1 class="hero-title">Grafana Dashboard Explorer</h1>
+        <p class="hero-description">Explore and manage your Grafana dashboards across multiple instances</p>
+    </div>
     
     <div class="navigation-cards">
-        <a href="{{ '/statistics' | relative_url }}" class="nav-card">
-            <h2>Statistics Overview</h2>
-            <p>View dashboard statistics and metrics</p>
+        <a href="{{ site.baseurl }}/statistics" class="nav-card">
+            <div class="nav-card-content">
+                <h2>Statistics Overview</h2>
+                <p>View comprehensive dashboard statistics and metrics</p>
+                <span class="nav-card-arrow">→</span>
+            </div>
         </a>
-        <a href="{{ '/matrix' | relative_url }}" class="nav-card">
-            <h2>Deployment Matrix</h2>
-            <p>Compare dashboard deployments across instances</p>
+        <a href="{{ site.baseurl }}/matrix" class="nav-card">
+            <div class="nav-card-content">
+                <h2>Deployment Matrix</h2>
+                <p>Compare dashboard deployments across instances</p>
+                <span class="nav-card-arrow">→</span>
+            </div>
         </a>
-        <a href="{{ '/links' | relative_url }}" class="nav-card">
-            <h3>Dashboard Links</h3>
-            <p>Browse all dashboard links</p>
+        <a href="{{ site.baseurl }}/links" class="nav-card">
+            <div class="nav-card-content">
+                <h2>Dashboard Links</h2>
+                <p>Browse all dashboard links in one place</p>
+                <span class="nav-card-arrow">→</span>
+            </div>
         </a>
     </div>
 
-    {% assign instances = site.data.grafana.instances %}
-    
-    <div class="instances-grid">
-        {% for instance in instances %}
+    <div class="instances-overview">
+        {% for instance in site.data.grafana.instances %}
         <div class="instance-card">
-            <h2>{{ instance.name }}</h2>
-            <p>{{ instance.folders }} folders, {{ instance.dashboards }} dashboards</p>
-            
-            <div class="folders">
-                {% for folder in instance.folders_list %}
-                <div class="folder">
-                    <h3>{{ folder.title }}</h3>
-                    <ul class="dashboards-list">
-                        {% assign folder_dashboards = instance.dashboards_list | where: "folder_id", folder.id %}
-                        {% for dashboard in folder_dashboards %}
-                        <li class="dashboard-item">
-                            <h4>{{ dashboard.title }}</h4>
-                            <p>{{ dashboard.description }}</p>
-                            <div class="tags">
-                                {% for tag in dashboard.tags %}
-                                <span class="tag">{{ tag }}</span>
-                                {% endfor %}
-                            </div>
-                            <a href="{{ dashboard.url }}" target="_blank" rel="noopener noreferrer">
-                                View Dashboard
-                            </a>
-                        </li>
-                        {% endfor %}
-                    </ul>
+            <h3>{{ instance.name }}</h3>
+            <div class="instance-stats">
+                <div class="stat">
+                    <span class="stat-number">{{ instance.folders }}</span>
+                    <span class="stat-label">Folders</span>
                 </div>
-                {% endfor %}
+                <div class="stat">
+                    <span class="stat-number">{{ instance.dashboards }}</span>
+                    <span class="stat-label">Dashboards</span>
+                </div>
             </div>
         </div>
         {% endfor %}
