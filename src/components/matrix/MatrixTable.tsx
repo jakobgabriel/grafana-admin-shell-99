@@ -1,8 +1,14 @@
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowUp, ArrowDown, HelpCircle } from "lucide-react";
 import { GrafanaInstance } from "@/types/grafana";
 import { countDashboards, getCellColor } from '@/utils/matrixUtils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Props {
   tagCombinations: string[];
@@ -19,6 +25,23 @@ const MatrixTable = ({
   sortConfig, 
   onSort 
 }: Props) => {
+  const calculateCoverage = (combination: string): { percentage: number; instancesWithDashboards: number } => {
+    let instancesWithDashboards = 0;
+    instances.forEach(instance => {
+      if (countDashboards(instance, combination) > 0) {
+        instancesWithDashboards++;
+      }
+    });
+    const percentage = (instancesWithDashboards / instances.length) * 100;
+    return { percentage, instancesWithDashboards };
+  };
+
+  const getCoverageColor = (percentage: number): string => {
+    if (percentage >= 80) return 'text-green-600';
+    if (percentage >= 50) return 'text-yellow-600';
+    return 'text-red-600';
+  };
+
   return (
     <div className="rounded-md border overflow-x-auto">
       <Table>
@@ -38,6 +61,20 @@ const MatrixTable = ({
                   )
                 )}
               </div>
+            </TableHead>
+            <TableHead className="w-[100px] sticky left-[300px] bg-white z-20">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger className="flex items-center gap-1">
+                    Coverage
+                    <HelpCircle className="h-4 w-4" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Percentage of instances that have dashboards with this tag combination.</p>
+                    <p className="text-xs mt-1">Formula: (Instances with dashboards / Total instances) × 100</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </TableHead>
             {instances.map((instance, index) => (
               <TableHead 
@@ -64,30 +101,45 @@ const MatrixTable = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {tagCombinations.map((combination, idx) => (
-            <TableRow key={idx}>
-              <TableCell className="font-medium sticky left-0 bg-white z-10">
-                <div className="flex flex-wrap gap-1">
-                  {combination.split(', ').map((tag, tagIdx) => (
-                    <span key={tagIdx} className="inline-block bg-grafana-accent/10 text-grafana-accent px-2 py-1 rounded-full text-sm">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </TableCell>
-              {instances.map((instance, instanceIdx) => {
-                const count = countDashboards(instance, combination);
-                return (
-                  <TableCell 
-                    key={instanceIdx}
-                    className={`${getCellColor(count, maxDashboards)} transition-colors duration-300 text-center font-medium p-1 w-[20px]`}
-                  >
-                    {count}
-                  </TableCell>
-                );
-              })}
-            </TableRow>
-          ))}
+          {tagCombinations.map((combination, idx) => {
+            const coverage = calculateCoverage(combination);
+            return (
+              <TableRow key={idx}>
+                <TableCell className="font-medium sticky left-0 bg-white z-10">
+                  <div className="flex flex-wrap gap-1">
+                    {combination.split(', ').map((tag, tagIdx) => (
+                      <span key={tagIdx} className="inline-block bg-grafana-accent/10 text-grafana-accent px-2 py-1 rounded-full text-sm">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </TableCell>
+                <TableCell className={`sticky left-[300px] bg-white z-10 ${getCoverageColor(coverage.percentage)}`}>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        {coverage.percentage.toFixed(1)}%
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{coverage.instancesWithDashboards} out of {instances.length} instances</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </TableCell>
+                {instances.map((instance, instanceIdx) => {
+                  const count = countDashboards(instance, combination);
+                  return (
+                    <TableCell 
+                      key={instanceIdx}
+                      className={`${getCellColor(count, maxDashboards)} transition-colors duration-300 text-center font-medium p-1 w-[20px]`}
+                    >
+                      {count}
+                    </TableCell>
+                  );
+                })}
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </div>
