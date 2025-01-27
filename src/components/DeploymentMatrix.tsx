@@ -27,24 +27,45 @@ const DeploymentMatrix = ({ instances }: Props) => {
   const allTags = useMemo(() => getAllTags(instances), [instances]);
   const tagCombinations = useMemo(() => getTagCombinations(instances), [instances]);
 
-  // Calculate overall coverage
+  // Calculate overall coverage with improved logic
   const calculateOverallCoverage = () => {
-    let totalCombinations = 0;
-    let totalCoverageSum = 0;
-
-    tagCombinations.forEach(combination => {
-      let instancesWithDashboards = 0;
-      instances.forEach(instance => {
-        if (countDashboards(instance, combination) > 0) {
-          instancesWithDashboards++;
+    // Count how many instances have each tag combination
+    const combinationPresence = new Map<string, Set<string>>();
+    
+    // First, map which instances have which combinations
+    instances.forEach(instance => {
+      (instance.dashboards_list || []).forEach(dashboard => {
+        if (dashboard.tags.length > 0) {
+          const sortedTags = [...dashboard.tags].sort();
+          const combination = sortedTags.join(', ');
+          
+          if (!combinationPresence.has(combination)) {
+            combinationPresence.set(combination, new Set());
+          }
+          combinationPresence.get(combination)?.add(instance.name);
         }
       });
-      const coverage = (instancesWithDashboards / instances.length) * 100;
-      totalCoverageSum += coverage;
-      totalCombinations++;
     });
 
-    return totalCombinations > 0 ? (totalCoverageSum / totalCombinations).toFixed(1) : "0";
+    // Calculate coverage based on where combinations are actually used
+    let totalCoverage = 0;
+    let relevantCombinations = 0;
+
+    combinationPresence.forEach((instancesWithCombination, combination) => {
+      // Only consider combinations that appear in at least one instance
+      if (instancesWithCombination.size > 0) {
+        // Calculate what percentage of instances have this combination
+        // compared to the number of instances where it appears at least once
+        const coverage = (instancesWithCombination.size / instances.length) * 100;
+        totalCoverage += coverage;
+        relevantCombinations++;
+      }
+    });
+
+    // Return average coverage only for relevant combinations
+    return relevantCombinations > 0 
+      ? (totalCoverage / relevantCombinations).toFixed(1) 
+      : "0";
   };
 
   const filteredTagCombinations = useMemo(() => {
