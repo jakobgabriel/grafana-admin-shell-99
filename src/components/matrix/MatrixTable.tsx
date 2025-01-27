@@ -42,7 +42,7 @@ const MatrixTable = ({
             {instances.map((instance, index) => (
               <TableHead 
                 key={index}
-                className="cursor-pointer w-[40px] p-0"
+                className="cursor-pointer w-[20px] p-0"
                 onClick={() => onSort(instance.name)}
               >
                 <div className="flex items-center justify-center h-[180px] relative">
@@ -80,7 +80,7 @@ const MatrixTable = ({
                 return (
                   <TableCell 
                     key={instanceIdx}
-                    className={`${getCellColor(count, maxDashboards)} transition-colors duration-300 text-center font-medium p-2 w-[40px]`}
+                    className={`${getCellColor(count, maxDashboards)} transition-colors duration-300 text-center font-medium p-1 w-[20px]`}
                   >
                     {count}
                   </TableCell>
