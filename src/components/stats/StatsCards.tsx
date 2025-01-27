@@ -38,37 +38,37 @@ const StatsCards = ({ instances, overallCoverage }: Props) => {
       <Card>
         <CardHeader className="space-y-0 pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-medium">Dashboard Standardization Score</CardTitle>
+            <CardTitle className="text-sm font-medium">Process Coverage Score</CardTitle>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger>
                   <Info className="h-4 w-4 text-grafana-blue cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent className="max-w-[350px] p-4">
-                  <p className="font-semibold mb-2">Standardization Score Formula:</p>
+                  <p className="font-semibold mb-2">Process Coverage Score Explained:</p>
                   <ol className="list-decimal pl-4 space-y-2 text-sm">
-                    <li>For each dashboard template:
+                    <li>For each process-specific dashboard:
                       <ul className="list-disc pl-4 mt-1">
-                        <li>Instance adoption = (Instances using template / Total instances) × 100</li>
-                        <li>Template impact = √(Usage instances / Total instances)</li>
+                        <li>Coverage = (Instances with dashboard / Instances with process) × 100</li>
+                        <li>Process weight = Number of instances with process / Total instances</li>
                       </ul>
                     </li>
-                    <li>Calculate weighted average across all templates</li>
+                    <li>Final score considers both coverage and process availability</li>
                   </ol>
-                  <p className="mt-2 text-xs italic">This score reflects how well dashboard templates are standardized and adopted across your instances.</p>
+                  <p className="mt-2 text-xs italic">This score reflects how well dashboards are implemented across instances, accounting for process availability.</p>
                   <div className="mt-3 pt-2 border-t border-gray-200">
                     <p className="text-sm font-medium mb-1">Score Interpretation:</p>
                     <ul className="list-disc pl-4 text-xs space-y-1">
-                      <li><span className="text-green-600 font-medium">≥80%</span>: Excellent standardization</li>
-                      <li><span className="text-yellow-600 font-medium">50-79%</span>: Good progress</li>
-                      <li><span className="text-red-600 font-medium">&lt;50%</span>: Opportunity for standardization</li>
+                      <li><span className="text-green-600 font-medium">≥80%</span>: Excellent coverage of available processes</li>
+                      <li><span className="text-yellow-600 font-medium">50-79%</span>: Good implementation progress</li>
+                      <li><span className="text-red-600 font-medium">&lt;50%</span>: Room for process monitoring expansion</li>
                     </ul>
                   </div>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
-          <CardDescription>How well dashboard templates are adopted across instances</CardDescription>
+          <CardDescription>How well dashboards cover available processes per instance</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <Tooltip>
@@ -76,7 +76,7 @@ const StatsCards = ({ instances, overallCoverage }: Props) => {
               <div className="flex items-center justify-between cursor-help">
                 <div className="flex items-center gap-2">
                   <GitCompare className="h-4 w-4 text-grafana-blue" />
-                  <span>Standardization Score</span>
+                  <span>Process Coverage</span>
                 </div>
                 <span className={`font-bold ${
                   Number(overallCoverage) >= 80 ? 'text-green-600' :
@@ -87,16 +87,16 @@ const StatsCards = ({ instances, overallCoverage }: Props) => {
             </TooltipTrigger>
             <TooltipContent>
               <p className="max-w-xs">
-                Overall standardization score based on template adoption and usage across instances.
+                Overall coverage score based on available processes and their monitoring implementation.
               </p>
             </TooltipContent>
           </Tooltip>
           <div className="flex items-center justify-between">
-            <span>Reused Templates</span>
+            <span>Process-Specific Dashboards</span>
             <span className="font-bold text-green-600">{reusedDashboards.length}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span>Template Reuse Rate</span>
+            <span>Process Implementation Rate</span>
             <span className="font-bold text-blue-600">{reusageRate}%</span>
           </div>
         </CardContent>
@@ -134,8 +134,8 @@ const StatsCards = ({ instances, overallCoverage }: Props) => {
 
       <Card>
         <CardHeader className="space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Top Instances Needing Attention</CardTitle>
-          <CardDescription>Instances with low dashboard coverage</CardDescription>
+          <CardTitle className="text-sm font-medium">Instances Needing Process Coverage</CardTitle>
+          <CardDescription>Instances with monitoring gaps in available processes</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           {lowDashboardInstances.length > 0 ? (
@@ -154,11 +154,11 @@ const StatsCards = ({ instances, overallCoverage }: Props) => {
             ))
           ) : (
             <div className="text-sm text-muted-foreground">
-              No instances currently need attention
+              All instances have good process coverage
             </div>
           )}
           <div className="text-xs text-muted-foreground mt-2">
-            Shows instances with less than 50% of average dashboard count
+            Shows instances with less than 50% coverage of their available processes
           </div>
         </CardContent>
       </Card>
