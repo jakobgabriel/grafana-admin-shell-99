@@ -1,0 +1,29 @@
+instances:
+  - name: Production Grafana
+    url: https://play.grafana.org
+    folders: 3
+    dashboards: 8
+    folders_list:
+      - id: "1"
+        title: System Monitoring
+      - id: "2"
+        title: Application Metrics
+      - id: "3"
+        title: Infrastructure
+    dashboards_list:
+      - title: System Overview
+        description: Complete system metrics dashboard with CPU, Memory, Network, and Disk usage metrics
+        url: https://play.grafana.org/d/rYdddlPWk/node-exporter-full
+        tags: 
+          - system
+          - monitoring
+          - node-exporter
+        folder_id: "1"
+      - title: Application Performance
+        description: Application performance monitoring with response times, error rates, and throughput metrics
+        url: https://play.grafana.org/d/apm
+        tags:
+          - apm
+          - performance
+          - traces
+        folder_id: "2"

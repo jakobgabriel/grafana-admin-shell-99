@@ -1,0 +1,31 @@
+title: Grafana Dashboard Explorer
+description: A static web application for exploring Grafana dashboards across multiple instances
+baseurl: ""
+url: ""
+
+# Build settings
+markdown: kramdown
+theme: minima
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+
+exclude:
+  - node_modules
+  - package.json
+  - package-lock.json
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+
+collections:
+  dashboards:
+    output: true
+    permalink: /:collection/:name
+
+defaults:
+  - scope:
+      path: ""
+      type: "dashboards"
+    values:
+      layout: "dashboard"
