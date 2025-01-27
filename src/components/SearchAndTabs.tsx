@@ -1,6 +1,8 @@
 import React from 'react';
 import SearchBar from './SearchBar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Grid, List, Layout } from "lucide-react";
 import InstancesSection from './InstancesSection';
 import OverviewStats from './OverviewStats';
 import DeploymentMatrix from './DeploymentMatrix';
@@ -38,19 +40,49 @@ const SearchAndTabs = ({
   onRefreshInstance,
   onOpenAdminPanel,
 }: SearchAndTabsProps) => {
+  const [viewMode, setViewMode] = React.useState<'list' | 'grid' | 'compact'>('list');
+
   return (
     <>
-      <div className="mb-6">
-        <SearchBar 
-          searchQuery={searchQuery}
-          onSearchChange={onSearchChange}
-        />
+      <div className="mb-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <SearchBar 
+            searchQuery={searchQuery}
+            onSearchChange={onSearchChange}
+          />
+          <div className="flex items-center gap-2">
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'ghost'}
+              size="icon"
+              onClick={() => setViewMode('list')}
+              className="text-grafana-blue hover:text-grafana-accent hover:bg-grafana-accent/10"
+            >
+              <List className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'grid' ? 'default' : 'ghost'}
+              size="icon"
+              onClick={() => setViewMode('grid')}
+              className="text-grafana-blue hover:text-grafana-accent hover:bg-grafana-accent/10"
+            >
+              <Grid className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'compact' ? 'default' : 'ghost'}
+              size="icon"
+              onClick={() => setViewMode('compact')}
+              className="text-grafana-blue hover:text-grafana-accent hover:bg-grafana-accent/10"
+            >
+              <Layout className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
       </div>
 
       <Tabs defaultValue="instances" className="space-y-4">
         <TabsList>
           <TabsTrigger value="instances">Instances</TabsTrigger>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="dashboard-list">Dashboard List</TabsTrigger>
           <TabsTrigger value="matrix">Deployment Matrix</TabsTrigger>
         </TabsList>
         
@@ -69,10 +101,11 @@ const SearchAndTabs = ({
             onRemoveInstance={onRemoveInstance}
             onRefreshInstance={onRefreshInstance}
             onOpenAdminPanel={onOpenAdminPanel}
+            viewMode={viewMode}
           />
         </TabsContent>
         
-        <TabsContent value="overview">
+        <TabsContent value="dashboard-list">
           <OverviewStats 
             instances={instances.length > 0 ? instances : demoInstances} 
           />

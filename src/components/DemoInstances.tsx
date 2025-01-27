@@ -19,6 +19,7 @@ interface Props {
   onInstanceToggle: (instanceName: string) => void;
   onRemoveInstance?: (name: string) => void;
   onRefreshInstance?: (instance: GrafanaInstance) => void;
+  viewMode: 'list' | 'grid' | 'compact';
 }
 
 const DemoInstances = ({
@@ -31,6 +32,7 @@ const DemoInstances = ({
   onInstanceToggle,
   onRemoveInstance,
   onRefreshInstance,
+  viewMode,
 }: Props) => {
   const filterDashboards = (dashboards: DashboardData[], folderTitle?: string) => {
     if (!dashboards) return [];
@@ -126,7 +128,10 @@ const DemoInstances = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className={`space-y-6 ${
+      viewMode === 'grid' ? 'grid grid-cols-2 gap-6 space-y-0' :
+      viewMode === 'compact' ? 'space-y-2' : 'space-y-6'
+    }`}>
       {instances.map((instance, index) => (
         <Collapsible
           key={index}

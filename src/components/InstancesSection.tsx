@@ -1,9 +1,10 @@
 import React from 'react';
-import DemoInstances from './DemoInstances';
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import TagFilter from './TagFilter';
-import WelcomeSection from './WelcomeSection';
+import DemoInstances from './DemoInstances';
 
-interface InstancesSectionProps {
+interface Props {
   instances: any[];
   demoInstances: any[];
   searchQuery: string;
@@ -17,6 +18,7 @@ interface InstancesSectionProps {
   onRemoveInstance: (name: string) => void;
   onRefreshInstance: (instance: any) => void;
   onOpenAdminPanel: () => void;
+  viewMode: 'list' | 'grid' | 'compact';
 }
 
 const InstancesSection = ({
@@ -33,52 +35,41 @@ const InstancesSection = ({
   onRemoveInstance,
   onRefreshInstance,
   onOpenAdminPanel,
-}: InstancesSectionProps) => {
-  // Only show welcome section and demo instances if there are no real instances
-  if (instances.length === 0) {
+  viewMode,
+}: Props) => {
+  const hasInstances = instances.length > 0;
+  const displayInstances = hasInstances ? instances : demoInstances;
+
+  if (!displayInstances.length) {
     return (
-      <div className="grid gap-6">
-        <WelcomeSection onOpenAdminPanel={onOpenAdminPanel} />
-        <div className="grid gap-6">
-          <h3 className="text-lg font-semibold">Demo View</h3>
-          <div className="grid md:grid-cols-[250px,1fr] gap-6">
-            <TagFilter
-              tags={allTags}
-              selectedTags={selectedTags}
-              onTagSelect={onTagSelect}
-            />
-            <DemoInstances
-              instances={demoInstances}
-              searchQuery={searchQuery}
-              selectedTags={selectedTags}
-              expandedFolders={expandedFolders}
-              expandedInstances={expandedInstances}
-              onFolderToggle={onFolderToggle}
-              onInstanceToggle={onInstanceToggle}
-            />
-          </div>
-        </div>
+      <div className="text-center py-8">
+        <p className="text-lg mb-4">No Grafana instances found</p>
+        <Button onClick={onOpenAdminPanel} className="flex items-center gap-2">
+          <Plus className="w-4 h-4" />
+          Add Grafana Instance
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="grid md:grid-cols-[250px,1fr] gap-6">
+    <div className="space-y-6">
       <TagFilter
-        tags={allTags}
+        allTags={allTags}
         selectedTags={selectedTags}
         onTagSelect={onTagSelect}
       />
       <DemoInstances
-        instances={instances}
+        instances={displayInstances}
         searchQuery={searchQuery}
         selectedTags={selectedTags}
         expandedFolders={expandedFolders}
         expandedInstances={expandedInstances}
         onFolderToggle={onFolderToggle}
         onInstanceToggle={onInstanceToggle}
-        onRemoveInstance={onRemoveInstance}
-        onRefreshInstance={onRefreshInstance}
+        onRemoveInstance={hasInstances ? onRemoveInstance : undefined}
+        onRefreshInstance={hasInstances ? onRefreshInstance : undefined}
+        viewMode={viewMode}
       />
     </div>
   );
