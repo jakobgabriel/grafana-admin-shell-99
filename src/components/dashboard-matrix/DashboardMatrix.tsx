@@ -6,7 +6,8 @@ import StatsCards from "../stats/StatsCards";
 import { 
   getAllDashboardNames,
   getMaxDashboardsByName,
-  exportDashboardMatrixToExcel
+  exportDashboardMatrixToExcel,
+  calculateDashboardStats
 } from '@/utils/dashboardMatrixUtils';
 
 interface Props {
@@ -72,11 +73,14 @@ const DashboardMatrix = ({ instances }: Props) => {
     exportDashboardMatrixToExcel(dashboardNames, instances);
   };
 
+  const { reusageRate, standardization } = calculateDashboardStats(instances);
+
   return (
     <div className="space-y-6">
       <StatsCards 
         instances={instances} 
-        overallCoverage="N/A"
+        overallCoverage={standardization}
+        reusageRate={reusageRate}
       />
       <MatrixHeader
         searchQuery={searchQuery}

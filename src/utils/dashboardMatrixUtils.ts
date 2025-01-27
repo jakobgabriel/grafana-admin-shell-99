@@ -1,4 +1,5 @@
 import { GrafanaInstance } from "@/types/grafana";
+import * as XLSX from 'xlsx';
 
 export const getAllDashboardNames = (instances: GrafanaInstance[]): string[] => {
   const namesSet = new Set<string>();
@@ -27,11 +28,40 @@ export const getMaxDashboardsByName = (instances: GrafanaInstance[], dashboardNa
   return max;
 };
 
-export const exportDashboardMatrixToExcel = (dashboardNames: string[], instances: GrafanaInstance[]) => {
-  const XLSX = require('xlsx');
-  const workbook = XLSX.utils.book_new();
+export const calculateDashboardStats = (instances: GrafanaInstance[]) => {
+  const allDashboards = instances.flatMap(instance => instance.dashboards_list || []);
+  const uniqueDashboardTitles = new Set(allDashboards.map(d => d.title));
+  
+  // Calculate reusage rate
+  const reusedDashboards = Array.from(uniqueDashboardTitles).filter(title => 
+    allDashboards.filter(d => d.title === title).length > 1
+  );
+  const reusageRate = ((reusedDashboards.length / uniqueDashboardTitles.size) * 100).toFixed(1);
 
-  // Prepare the data
+  // Calculate standardization score
+  const totalInstances = instances.length;
+  const standardizationScores = Array.from(uniqueDashboardTitles).map(title => {
+    const instancesWithDashboard = new Set(
+      allDashboards
+        .filter(d => d.title === title)
+        .map(d => instances.findIndex(i => 
+          i.dashboards_list?.some(dash => dash.title === title)
+        ))
+    ).size;
+    return (instancesWithDashboard / totalInstances) * 100;
+  });
+
+  const standardization = standardizationScores.length > 0
+    ? (standardizationScores.reduce((a, b) => a + b) / standardizationScores.length).toFixed(1)
+    : "0.0";
+
+  return {
+    reusageRate,
+    standardization
+  };
+};
+
+export const exportDashboardMatrixToExcel = (dashboardNames: string[], instances: GrafanaInstance[]) => {
   const headers = ['Dashboard Name', ...instances.map(i => i.name)];
   const data = [headers];
 
@@ -44,6 +74,7 @@ export const exportDashboardMatrixToExcel = (dashboardNames: string[], instances
   });
 
   const worksheet = XLSX.utils.aoa_to_sheet(data);
+  const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Dashboard Matrix');
   XLSX.writeFile(workbook, 'dashboard_matrix.xlsx');
 };
