@@ -49,6 +49,14 @@ const StatsCards = ({ instances, overallCoverage }: Props) => {
                     <li>Calculate weighted average across all combinations</li>
                   </ol>
                   <p className="mt-2 text-xs italic">This formula balances both breadth (across instances) and depth (number of dashboards) of implementation.</p>
+                  <div className="mt-3 pt-2 border-t border-gray-200">
+                    <p className="text-sm font-medium mb-1">Interpretation Guide:</p>
+                    <ul className="list-disc pl-4 text-xs space-y-1">
+                      <li><span className="text-green-600 font-medium">≥80%</span>: Excellent coverage across instances</li>
+                      <li><span className="text-yellow-600 font-medium">50-79%</span>: Room for improvement</li>
+                      <li><span className="text-red-600 font-medium">&lt;50%</span>: Needs attention - consider standardizing dashboards</li>
+                    </ul>
+                  </div>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
