@@ -1,11 +1,12 @@
 import React from 'react';
 import SearchBar from './SearchBar';
 import { Button } from "@/components/ui/button";
-import { Grid, List, Layout, LayoutDashboard, Database, Navigation } from "lucide-react";
+import { Grid, LayoutDashboard, Database, Calculator } from "lucide-react";
 import InstancesSection from './InstancesSection';
 import OverviewStats from './OverviewStats';
 import DeploymentMatrix from './DeploymentMatrix';
-import { useNavigate } from 'react-router-dom';
+import StatisticsCards from './management/StatisticsCards';
+import InstanceCharts from './management/InstanceCharts';
 
 interface SearchAndTabsProps {
   searchQuery: string;
@@ -42,7 +43,6 @@ const SearchAndTabs = ({
 }: SearchAndTabsProps) => {
   const [activeView, setActiveView] = React.useState('instances');
   const [viewMode, setViewMode] = React.useState<'list' | 'grid' | 'compact'>('list');
-  const navigate = useNavigate();
 
   return (
     <>
@@ -78,11 +78,11 @@ const SearchAndTabs = ({
               Deployment Matrix
             </Button>
             <Button
-              variant="outline"
-              onClick={() => navigate('/management')}
+              variant={activeView === 'statistics' ? 'default' : 'outline'}
+              onClick={() => setActiveView('statistics')}
               className="flex items-center gap-2"
             >
-              <Navigation className="w-4 h-4" />
+              <Calculator className="w-4 h-4" />
               Statistics
             </Button>
           </div>
@@ -118,6 +118,13 @@ const SearchAndTabs = ({
         <DeploymentMatrix 
           instances={instances.length > 0 ? instances : demoInstances}
         />
+      )}
+
+      {activeView === 'statistics' && (
+        <div className="space-y-8">
+          <StatisticsCards instances={instances.length > 0 ? instances : demoInstances} />
+          <InstanceCharts instances={instances.length > 0 ? instances : demoInstances} />
+        </div>
       )}
     </>
   );
