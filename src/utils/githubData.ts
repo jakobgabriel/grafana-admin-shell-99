@@ -1,14 +1,20 @@
 import { GrafanaInstance } from "@/types/grafana";
 
-const GITHUB_RAW_URL = "https://raw.githubusercontent.com";
-
 export const fetchGrafanaData = async (repo: string, branch: string = "main"): Promise<GrafanaInstance[]> => {
-  console.log('Fetching Grafana data from GitHub:', repo, branch);
+  console.log('Fetching Grafana data');
   try {
-    const response = await fetch(`${GITHUB_RAW_URL}/${repo}/${branch}/grafana-data.json`);
+    // In production (GitHub Pages), load from local path
+    const dataUrl = import.meta.env.PROD 
+      ? '/grafana-data.json'
+      : `https://raw.githubusercontent.com/${repo}/${branch}/grafana-data.json`;
+    
+    console.log('Fetching from:', dataUrl);
+    const response = await fetch(dataUrl);
+    
     if (!response.ok) {
       throw new Error('Failed to fetch data');
     }
+    
     const data = await response.json();
     console.log('Fetched data:', data);
     return data;

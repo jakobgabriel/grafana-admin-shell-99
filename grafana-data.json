@@ -1,0 +1,69 @@
+[
+  {
+    "name": "Production Grafana",
+    "url": "https://play.grafana.org",
+    "folders": 3,
+    "dashboards": 8,
+    "folders_list": [
+      { "id": "1", "title": "System Monitoring" },
+      { "id": "2", "title": "Application Metrics" },
+      { "id": "3", "title": "Infrastructure" }
+    ],
+    "dashboards_list": [
+      {
+        "title": "System Overview",
+        "description": "Complete system metrics dashboard with CPU, Memory, Network, and Disk usage metrics",
+        "url": "https://play.grafana.org/d/rYdddlPWk/node-exporter-full",
+        "tags": ["system", "monitoring", "node-exporter"],
+        "folderId": "1"
+      },
+      {
+        "title": "Application Performance",
+        "description": "Application performance monitoring with response times, error rates, and throughput metrics",
+        "url": "https://play.grafana.org/d/apm",
+        "tags": ["apm", "performance", "traces"],
+        "folderId": "2"
+      },
+      {
+        "title": "Database Metrics",
+        "description": "PostgreSQL database performance monitoring",
+        "url": "https://play.grafana.org/d/postgres",
+        "tags": ["database", "postgresql", "performance"],
+        "folderId": "2"
+      }
+    ]
+  },
+  {
+    "name": "Development Grafana",
+    "url": "https://play-dev.grafana.org",
+    "folders": 2,
+    "dashboards": 7,
+    "folders_list": [
+      { "id": "4", "title": "Development Metrics" },
+      { "id": "5", "title": "Testing Environment" }
+    ],
+    "dashboards_list": [
+      {
+        "title": "Dev Environment Health",
+        "description": "Development environment health monitoring",
+        "url": "https://play.grafana.org/d/dev-health",
+        "tags": ["development", "monitoring"],
+        "folderId": "4"
+      },
+      {
+        "title": "Test Coverage Dashboard",
+        "description": "Test coverage and quality metrics",
+        "url": "https://play.grafana.org/d/test-coverage",
+        "tags": ["testing", "quality"],
+        "folderId": "5"
+      },
+      {
+        "title": "CI/CD Pipeline",
+        "description": "Continuous Integration and Deployment metrics",
+        "url": "https://play.grafana.org/d/cicd",
+        "tags": ["ci-cd", "pipeline"],
+        "folderId": "4"
+      }
+    ]
+  }
+]
