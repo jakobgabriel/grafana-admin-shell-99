@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { GrafanaInstance } from "@/types/grafana";
 import MatrixHeader from './matrix/MatrixHeader';
 import MatrixTable from './matrix/MatrixTable';
+import StatsCards from "./stats/StatsCards";
 import { 
   getAllTags, 
   getTagCombinations, 
@@ -25,6 +26,26 @@ const DeploymentMatrix = ({ instances }: Props) => {
 
   const allTags = useMemo(() => getAllTags(instances), [instances]);
   const tagCombinations = useMemo(() => getTagCombinations(instances), [instances]);
+
+  // Calculate overall coverage
+  const calculateOverallCoverage = () => {
+    let totalCombinations = 0;
+    let totalCoverageSum = 0;
+
+    tagCombinations.forEach(combination => {
+      let instancesWithDashboards = 0;
+      instances.forEach(instance => {
+        if (countDashboards(instance, combination) > 0) {
+          instancesWithDashboards++;
+        }
+      });
+      const coverage = (instancesWithDashboards / instances.length) * 100;
+      totalCoverageSum += coverage;
+      totalCombinations++;
+    });
+
+    return totalCombinations > 0 ? (totalCoverageSum / totalCombinations).toFixed(1) : "0";
+  };
 
   const filteredTagCombinations = useMemo(() => {
     let filtered = tagCombinations;
@@ -102,6 +123,10 @@ const DeploymentMatrix = ({ instances }: Props) => {
 
   return (
     <div className="space-y-6">
+      <StatsCards 
+        instances={instances} 
+        overallCoverage={calculateOverallCoverage()}
+      />
       <MatrixHeader
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}

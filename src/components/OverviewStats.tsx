@@ -1,5 +1,4 @@
 import React from 'react';
-import StatsCards from "./stats/StatsCards";
 import DashboardsTable from "./stats/DashboardsTable";
 import { GrafanaInstance } from "@/types/grafana";
 
@@ -12,7 +11,6 @@ const OverviewStats = ({ instances }: Props) => {
 
   return (
     <div className="space-y-6">
-      <StatsCards instances={instances} />
       <DashboardsTable instances={instances} />
     </div>
   );

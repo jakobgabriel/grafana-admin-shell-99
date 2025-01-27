@@ -6,38 +6,14 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 interface Props {
   instances: GrafanaInstance[];
+  overallCoverage: string;
 }
 
-const StatsCards = ({ instances }: Props) => {
+const StatsCards = ({ instances, overallCoverage }: Props) => {
   console.log('Rendering StatsCards with instances:', instances);
   
   const getAllDashboards = instances.flatMap(instance => instance.dashboards_list || []);
   const allTags = new Set(getAllDashboards.flatMap(dashboard => dashboard.tags || []));
-  
-  // Calculate dashboard coverage
-  const calculateCoverage = () => {
-    const dashboardTitles = new Set();
-    let totalOccurrences = 0;
-    
-    instances.forEach(instance => {
-      (instance.dashboards_list || []).forEach(dashboard => {
-        dashboardTitles.add(dashboard.title);
-        totalOccurrences++;
-      });
-    });
-    
-    const uniqueDashboards = dashboardTitles.size;
-    const maxPossibleOccurrences = uniqueDashboards * instances.length;
-    const coverage = (totalOccurrences / maxPossibleOccurrences) * 100;
-    
-    return {
-      coverage: coverage.toFixed(1),
-      uniqueDashboards,
-      totalOccurrences
-    };
-  };
-
-  const coverageStats = calculateCoverage();
   
   // Find instances with low dashboard count
   const avgDashboards = getAllDashboards.length / instances.length;
@@ -79,7 +55,7 @@ const StatsCards = ({ instances }: Props) => {
         <Card>
           <CardHeader className="space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Dashboard Coverage</CardTitle>
-            <CardDescription>How well dashboards are distributed</CardDescription>
+            <CardDescription>Average coverage across all tag combinations</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <Tooltip>
@@ -89,22 +65,27 @@ const StatsCards = ({ instances }: Props) => {
                     <GitCompare className="h-4 w-4 text-grafana-blue" />
                     <span>Coverage Rate</span>
                   </div>
-                  <span className="font-bold">{coverageStats.coverage}%</span>
+                  <span className={`font-bold ${
+                    Number(overallCoverage) >= 80 ? 'text-green-600' :
+                    Number(overallCoverage) >= 50 ? 'text-yellow-600' :
+                    'text-red-600'
+                  }`}>{overallCoverage}%</span>
                 </div>
               </TooltipTrigger>
               <TooltipContent>
                 <p className="max-w-xs">
-                  Coverage = (Total Dashboard Occurrences / (Unique Dashboards × Instance Count)) × 100
+                  Average coverage across all tag combinations. For each combination:
+                  Coverage = (Instances with dashboards / Total instances) × 100
                 </p>
               </TooltipContent>
             </Tooltip>
             <div className="flex items-center justify-between">
-              <span>Unique Dashboards</span>
-              <span className="font-bold">{coverageStats.uniqueDashboards}</span>
+              <span>Total Tag Combinations</span>
+              <span className="font-bold">{getAllDashboards.length}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span>Total Occurrences</span>
-              <span className="font-bold">{coverageStats.totalOccurrences}</span>
+              <span>Instances Analyzed</span>
+              <span className="font-bold">{instances.length}</span>
             </div>
           </CardContent>
         </Card>
