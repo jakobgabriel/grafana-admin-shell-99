@@ -27,21 +27,20 @@ const SearchBar = ({ searchQuery, onSearchChange }: Props) => {
     }
   };
 
-  // Update local input value when searchQuery prop changes
   React.useEffect(() => {
     setInputValue(searchQuery);
   }, [searchQuery]);
 
   return (
-    <div className="relative">
-      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+    <div className="relative w-96">
+      <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
       <Input
         type="text"
         placeholder="Search dashboards... (Press Enter to search)"
         value={inputValue}
         onChange={handleSearchChange}
         onKeyDown={handleKeyDown}
-        className="pl-9"
+        className="pl-10 py-5 text-lg"
       />
     </div>
   );

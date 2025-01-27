@@ -1,6 +1,5 @@
 import React from 'react';
 import SearchBar from './SearchBar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Grid, List, Layout, LayoutDashboard, Database } from "lucide-react";
 import InstancesSection from './InstancesSection';
@@ -78,35 +77,6 @@ const SearchAndTabs = ({
             </Button>
           </div>
         </div>
-
-        {activeView === 'instances' && (
-          <div className="flex justify-end gap-2">
-            <Button
-              variant={viewMode === 'list' ? 'default' : 'ghost'}
-              size="icon"
-              onClick={() => setViewMode('list')}
-              className="text-grafana-blue hover:text-grafana-accent hover:bg-grafana-accent/10"
-            >
-              <List className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={viewMode === 'grid' ? 'default' : 'ghost'}
-              size="icon"
-              onClick={() => setViewMode('grid')}
-              className="text-grafana-blue hover:text-grafana-accent hover:bg-grafana-accent/10"
-            >
-              <Grid className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={viewMode === 'compact' ? 'default' : 'ghost'}
-              size="icon"
-              onClick={() => setViewMode('compact')}
-              className="text-grafana-blue hover:text-grafana-accent hover:bg-grafana-accent/10"
-            >
-              <Layout className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
       </div>
 
       {activeView === 'instances' && (
