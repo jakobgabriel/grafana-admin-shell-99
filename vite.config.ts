@@ -4,7 +4,7 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 
 export default defineConfig(({ mode }) => ({
-  base: mode === 'production' ? '/your-repo-name/' : '/',
+  base: mode === 'production' ? `/${process.env.GITHUB_REPOSITORY?.split('/')[1] || ''}` : '/',
   server: {
     host: "::",
     port: 8080,

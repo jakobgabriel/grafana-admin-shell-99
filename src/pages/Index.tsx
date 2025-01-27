@@ -139,6 +139,31 @@ const Index = () => {
     return Array.from(tagsSet);
   }, [instances]);
 
+  // These functions are now stubs since we're using GitHub data
+  const handleRemoveInstance = (name: string) => {
+    console.log('Remove instance not available in GitHub version');
+    toast({
+      title: "Not Available",
+      description: "Removing instances is not supported in the GitHub version",
+    });
+  };
+
+  const handleRefreshInstance = (instance: GrafanaInstance) => {
+    console.log('Refresh instance not available in GitHub version');
+    toast({
+      title: "Not Available",
+      description: "Refreshing instances is not supported in the GitHub version",
+    });
+  };
+
+  const handleOpenAdminPanel = () => {
+    console.log('Admin panel not available in GitHub version');
+    toast({
+      title: "Not Available",
+      description: "Admin panel is not supported in the GitHub version",
+    });
+  };
+
   return (
     <div className="container mx-auto p-4">
       <Header 
@@ -157,6 +182,9 @@ const Index = () => {
         onTagSelect={handleTagSelect}
         onFolderToggle={toggleFolder}
         onInstanceToggle={toggleInstance}
+        onRemoveInstance={handleRemoveInstance}
+        onRefreshInstance={handleRefreshInstance}
+        onOpenAdminPanel={handleOpenAdminPanel}
       />
     </div>
   );
