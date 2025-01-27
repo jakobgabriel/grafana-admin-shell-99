@@ -8,15 +8,16 @@ export const exportMatrixToExcel = (
 ) => {
   console.log('Exporting matrix to Excel:', { tagCombinations, instances });
   
-  // Create worksheet data
+  // Create worksheet data with header row
   const wsData = [
     ['Tag Combinations', ...instances.map(i => i.name)]
   ];
 
+  // Add data rows, converting numbers to strings
   tagCombinations.forEach(combination => {
     const row = [
       combination,
-      ...instances.map(instance => countDashboards(instance, combination))
+      ...instances.map(instance => String(countDashboards(instance, combination)))
     ];
     wsData.push(row);
   });
