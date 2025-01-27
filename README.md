@@ -9,6 +9,7 @@ A web application for managing and exploring Grafana dashboards across multiple 
 - Filter by tags
 - Import dashboard configurations
 - Overview statistics and metrics
+- Role-based access control (admin required for adding instances)
 
 ## Prerequisites
 
@@ -86,6 +87,19 @@ src/
 ├── types/           # TypeScript type definitions
 └── utils/           # Utility functions
 ```
+
+## User Roles and Permissions
+
+The application uses role-based access control:
+
+- **Admin Users**: Can add, edit, and remove Grafana instances
+- **Regular Users**: Can view and explore existing dashboards
+
+To grant admin access:
+1. Access your Supabase database
+2. Insert a record in the `user_roles` table with:
+   - user_id: The user's UUID
+   - role: 'admin'
 
 ## Deployment Options
 
