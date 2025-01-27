@@ -2,7 +2,7 @@ import React from 'react';
 import SearchBar from './SearchBar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Grid, List, Layout } from "lucide-react";
+import { Grid, List, Layout, LayoutDashboard, Database } from "lucide-react";
 import InstancesSection from './InstancesSection';
 import OverviewStats from './OverviewStats';
 import DeploymentMatrix from './DeploymentMatrix';
@@ -40,6 +40,7 @@ const SearchAndTabs = ({
   onRefreshInstance,
   onOpenAdminPanel,
 }: SearchAndTabsProps) => {
+  const [activeView, setActiveView] = React.useState('instances');
   const [viewMode, setViewMode] = React.useState<'list' | 'grid' | 'compact'>('list');
 
   return (
@@ -50,7 +51,36 @@ const SearchAndTabs = ({
             searchQuery={searchQuery}
             onSearchChange={onSearchChange}
           />
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
+            <Button
+              variant={activeView === 'instances' ? 'default' : 'outline'}
+              onClick={() => setActiveView('instances')}
+              className="flex items-center gap-2"
+            >
+              <Grid className="w-4 h-4" />
+              Instances
+            </Button>
+            <Button
+              variant={activeView === 'dashboard-list' ? 'default' : 'outline'}
+              onClick={() => setActiveView('dashboard-list')}
+              className="flex items-center gap-2"
+            >
+              <LayoutDashboard className="w-4 h-4" />
+              Dashboard List
+            </Button>
+            <Button
+              variant={activeView === 'matrix' ? 'default' : 'outline'}
+              onClick={() => setActiveView('matrix')}
+              className="flex items-center gap-2"
+            >
+              <Database className="w-4 h-4" />
+              Deployment Matrix
+            </Button>
+          </div>
+        </div>
+
+        {activeView === 'instances' && (
+          <div className="flex justify-end gap-2">
             <Button
               variant={viewMode === 'list' ? 'default' : 'ghost'}
               size="icon"
@@ -76,47 +106,39 @@ const SearchAndTabs = ({
               <Layout className="h-4 w-4" />
             </Button>
           </div>
-        </div>
+        )}
       </div>
 
-      <Tabs defaultValue="instances" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="instances">Instances</TabsTrigger>
-          <TabsTrigger value="dashboard-list">Dashboard List</TabsTrigger>
-          <TabsTrigger value="matrix">Deployment Matrix</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="instances">
-          <InstancesSection
-            instances={instances}
-            demoInstances={demoInstances}
-            searchQuery={searchQuery}
-            selectedTags={selectedTags}
-            expandedFolders={expandedFolders}
-            expandedInstances={expandedInstances}
-            allTags={allTags}
-            onTagSelect={onTagSelect}
-            onFolderToggle={onFolderToggle}
-            onInstanceToggle={onInstanceToggle}
-            onRemoveInstance={onRemoveInstance}
-            onRefreshInstance={onRefreshInstance}
-            onOpenAdminPanel={onOpenAdminPanel}
-            viewMode={viewMode}
-          />
-        </TabsContent>
-        
-        <TabsContent value="dashboard-list">
-          <OverviewStats 
-            instances={instances.length > 0 ? instances : demoInstances} 
-          />
-        </TabsContent>
+      {activeView === 'instances' && (
+        <InstancesSection
+          instances={instances}
+          demoInstances={demoInstances}
+          searchQuery={searchQuery}
+          selectedTags={selectedTags}
+          expandedFolders={expandedFolders}
+          expandedInstances={expandedInstances}
+          allTags={allTags}
+          onTagSelect={onTagSelect}
+          onFolderToggle={onFolderToggle}
+          onInstanceToggle={onInstanceToggle}
+          onRemoveInstance={onRemoveInstance}
+          onRefreshInstance={onRefreshInstance}
+          onOpenAdminPanel={onOpenAdminPanel}
+          viewMode={viewMode}
+        />
+      )}
+      
+      {activeView === 'dashboard-list' && (
+        <OverviewStats 
+          instances={instances.length > 0 ? instances : demoInstances} 
+        />
+      )}
 
-        <TabsContent value="matrix">
-          <DeploymentMatrix 
-            instances={instances.length > 0 ? instances : demoInstances}
-          />
-        </TabsContent>
-      </Tabs>
+      {activeView === 'matrix' && (
+        <DeploymentMatrix 
+          instances={instances.length > 0 ? instances : demoInstances}
+        />
+      )}
     </>
   );
 };
