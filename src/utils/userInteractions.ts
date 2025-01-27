@@ -1,23 +1,10 @@
-import { supabase } from "@/integrations/supabase/client";
-
-export type UserInteractionEvent = {
+interface UserInteraction {
   event_type: string;
   component: string;
   details?: Record<string, any>;
-};
+}
 
-export const logUserInteraction = async (event: UserInteractionEvent) => {
-  console.log('Logging user interaction:', event);
-  
-  try {
-    const { error } = await supabase
-      .from('user_interactions')
-      .insert([event]);
-
-    if (error) {
-      console.error('Error logging user interaction:', error);
-    }
-  } catch (err) {
-    console.error('Failed to log user interaction:', err);
-  }
+export const logUserInteraction = async (interaction: UserInteraction) => {
+  // In GitHub version, we just log to console
+  console.log('User interaction:', interaction);
 };
