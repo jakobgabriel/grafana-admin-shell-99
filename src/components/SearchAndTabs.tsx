@@ -1,10 +1,11 @@
 import React from 'react';
 import SearchBar from './SearchBar';
 import { Button } from "@/components/ui/button";
-import { Grid, LayoutDashboard, Database, Calculator } from "lucide-react";
+import { Grid, LayoutDashboard, Database, Calculator, Table } from "lucide-react";
 import InstancesSection from './InstancesSection';
 import OverviewStats from './OverviewStats';
 import DeploymentMatrix from './DeploymentMatrix';
+import DashboardMatrix from './dashboard-matrix/DashboardMatrix';
 import StatisticsCards from './management/StatisticsCards';
 import InstanceCharts from './management/InstanceCharts';
 
@@ -75,7 +76,15 @@ const SearchAndTabs = ({
               className="flex items-center gap-2"
             >
               <Database className="w-4 h-4" />
-              Deployment Matrix
+              Tag Matrix
+            </Button>
+            <Button
+              variant={activeView === 'dashboard-matrix' ? 'default' : 'outline'}
+              onClick={() => setActiveView('dashboard-matrix')}
+              className="flex items-center gap-2"
+            >
+              <Table className="w-4 h-4" />
+              Dashboard Matrix
             </Button>
             <Button
               variant={activeView === 'statistics' ? 'default' : 'outline'}
@@ -116,6 +125,12 @@ const SearchAndTabs = ({
 
       {activeView === 'matrix' && (
         <DeploymentMatrix 
+          instances={instances.length > 0 ? instances : demoInstances}
+        />
+      )}
+
+      {activeView === 'dashboard-matrix' && (
+        <DashboardMatrix 
           instances={instances.length > 0 ? instances : demoInstances}
         />
       )}
