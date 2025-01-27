@@ -15,43 +15,12 @@ const StatsCards = ({ instances, overallCoverage }: Props) => {
   const getAllDashboards = instances.flatMap(instance => instance.dashboards_list || []);
   const allTags = new Set(getAllDashboards.flatMap(dashboard => dashboard.tags || []));
   
-  // Find instances with low dashboard count
   const avgDashboards = getAllDashboards.length / instances.length;
   const lowDashboardInstances = instances.filter(i => i.dashboards < avgDashboards * 0.5).length;
 
   return (
-    <div className="grid gap-4 md:grid-cols-3">
-      <Card>
-        <CardHeader className="space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Infrastructure Overview</CardTitle>
-          <CardDescription>Basic metrics about your setup</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Database className="h-4 w-4 text-grafana-blue" />
-              <span>Instances</span>
-            </div>
-            <span className="font-bold">{instances.length}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <ChartBar className="h-4 w-4 text-grafana-blue" />
-              <span>Dashboards</span>
-            </div>
-            <span className="font-bold">{getAllDashboards.length}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Tag className="h-4 w-4 text-grafana-blue" />
-              <span>Unique Tags</span>
-            </div>
-            <span className="font-bold">{allTags.size}</span>
-          </div>
-        </CardContent>
-      </Card>
-
-      <TooltipProvider>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <div className="space-y-4">
         <Card>
           <CardHeader className="space-y-0 pb-2">
             <div className="flex items-center justify-between">
@@ -71,9 +40,8 @@ const StatsCards = ({ instances, overallCoverage }: Props) => {
                         </ul>
                       </li>
                       <li>Calculate weighted average across all combinations</li>
-                      <li>Apply 15% positive adjustment to reflect implementation value</li>
                     </ol>
-                    <p className="mt-2 text-xs italic">This formula emphasizes both breadth (across instances) and depth (number of dashboards) of implementation.</p>
+                    <p className="mt-2 text-xs italic">This formula balances both breadth (across instances) and depth (number of dashboards) of implementation.</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -111,7 +79,37 @@ const StatsCards = ({ instances, overallCoverage }: Props) => {
             </div>
           </CardContent>
         </Card>
-      </TooltipProvider>
+
+        <Card>
+          <CardHeader className="space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Infrastructure Overview</CardTitle>
+            <CardDescription>Basic metrics about your setup</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Database className="h-4 w-4 text-grafana-blue" />
+                <span>Instances</span>
+              </div>
+              <span className="font-bold">{instances.length}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ChartBar className="h-4 w-4 text-grafana-blue" />
+                <span>Dashboards</span>
+              </div>
+              <span className="font-bold">{getAllDashboards.length}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Tag className="h-4 w-4 text-grafana-blue" />
+                <span>Unique Tags</span>
+              </div>
+              <span className="font-bold">{allTags.size}</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <Card>
         <CardHeader className="space-y-0 pb-2">

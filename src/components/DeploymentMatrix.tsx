@@ -28,11 +28,9 @@ const DeploymentMatrix = ({ instances }: Props) => {
   const tagCombinations = useMemo(() => getTagCombinations(instances), [instances]);
 
   const calculateOverallCoverage = (): string => {
-    // Calculate total possible dashboard slots across all instances
     const totalInstances = instances.length;
     if (totalInstances === 0) return "0";
 
-    // Get all unique tag combinations being used
     const activeCombinations = new Set<string>();
     instances.forEach(instance => {
       (instance.dashboards_list || []).forEach(dashboard => {
@@ -43,7 +41,6 @@ const DeploymentMatrix = ({ instances }: Props) => {
       });
     });
 
-    // Calculate the actual dashboard distribution
     const combinationStats = new Map<string, {
       instanceCount: number;
       dashboardCount: number;
@@ -67,33 +64,22 @@ const DeploymentMatrix = ({ instances }: Props) => {
       });
     });
 
-    // Calculate weighted coverage score
     let totalScore = 0;
     let totalWeight = 0;
 
     combinationStats.forEach((stats, combination) => {
-      // Weight based on how many instances use this combination
       const instanceCoverage = (stats.instanceCount / totalInstances) * 100;
-      
-      // Weight based on dashboard count (more dashboards = more important)
       const dashboardWeight = stats.dashboardCount / Math.max(1, stats.instanceCount);
-      
-      // Combine weights
-      const weight = Math.sqrt(dashboardWeight); // Square root to normalize the impact
+      const weight = Math.sqrt(dashboardWeight);
       totalScore += instanceCoverage * weight;
       totalWeight += weight;
     });
 
-    // Calculate final weighted average
     const finalScore = totalWeight > 0 
       ? (totalScore / totalWeight)
       : 0;
 
-    // Apply positive scaling factor and ensure it stays within reasonable bounds
-    const baseScore = Math.min(100, Math.max(0, finalScore));
-    const enhancedScore = Math.min(100, baseScore * 1.15); // 15% positive adjustment
-
-    return enhancedScore.toFixed(1);
+    return Math.min(100, Math.max(0, finalScore)).toFixed(1);
   };
 
   const filteredTagCombinations = useMemo(() => {
