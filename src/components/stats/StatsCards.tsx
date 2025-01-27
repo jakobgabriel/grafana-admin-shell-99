@@ -26,42 +26,49 @@ const StatsCards = ({ instances, overallCoverage }: Props) => {
     .sort((a, b) => a.percentage - b.percentage)
     .slice(0, 3);
 
+  // Calculate unique dashboard templates by comparing titles
+  const uniqueDashboardTitles = new Set(getAllDashboards.map(d => d.title));
+  const reusedDashboards = Array.from(uniqueDashboardTitles).filter(title => 
+    getAllDashboards.filter(d => d.title === title).length > 1
+  );
+  const reusageRate = Math.round((reusedDashboards.length / uniqueDashboardTitles.size) * 100);
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div className="grid gap-4 md:grid-cols-3">
       <Card>
         <CardHeader className="space-y-0 pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-medium">Dashboard Coverage</CardTitle>
+            <CardTitle className="text-sm font-medium">Dashboard Standardization Score</CardTitle>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger>
                   <Info className="h-4 w-4 text-grafana-blue cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent className="max-w-[350px] p-4">
-                  <p className="font-semibold mb-2">Coverage Rate Formula:</p>
+                  <p className="font-semibold mb-2">Standardization Score Formula:</p>
                   <ol className="list-decimal pl-4 space-y-2 text-sm">
-                    <li>For each tag combination, calculate:
+                    <li>For each dashboard template:
                       <ul className="list-disc pl-4 mt-1">
-                        <li>Instance coverage = (Instances with dashboards / Total instances) × 100</li>
-                        <li>Dashboard weight = √(Number of dashboards / Instances using combination)</li>
+                        <li>Instance adoption = (Instances using template / Total instances) × 100</li>
+                        <li>Template impact = √(Usage instances / Total instances)</li>
                       </ul>
                     </li>
-                    <li>Calculate weighted average across all combinations</li>
+                    <li>Calculate weighted average across all templates</li>
                   </ol>
-                  <p className="mt-2 text-xs italic">This formula balances both breadth (across instances) and depth (number of dashboards) of implementation.</p>
+                  <p className="mt-2 text-xs italic">This score reflects how well dashboard templates are standardized and adopted across your instances.</p>
                   <div className="mt-3 pt-2 border-t border-gray-200">
-                    <p className="text-sm font-medium mb-1">Interpretation Guide:</p>
+                    <p className="text-sm font-medium mb-1">Score Interpretation:</p>
                     <ul className="list-disc pl-4 text-xs space-y-1">
-                      <li><span className="text-green-600 font-medium">≥80%</span>: Excellent coverage across instances</li>
-                      <li><span className="text-yellow-600 font-medium">50-79%</span>: Room for improvement</li>
-                      <li><span className="text-red-600 font-medium">&lt;50%</span>: Needs attention - consider standardizing dashboards</li>
+                      <li><span className="text-green-600 font-medium">≥80%</span>: Excellent standardization</li>
+                      <li><span className="text-yellow-600 font-medium">50-79%</span>: Good progress</li>
+                      <li><span className="text-red-600 font-medium">&lt;50%</span>: Opportunity for standardization</li>
                     </ul>
                   </div>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
-          <CardDescription>Average coverage across all tag combinations</CardDescription>
+          <CardDescription>How well dashboard templates are adopted across instances</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <Tooltip>
@@ -69,7 +76,7 @@ const StatsCards = ({ instances, overallCoverage }: Props) => {
               <div className="flex items-center justify-between cursor-help">
                 <div className="flex items-center gap-2">
                   <GitCompare className="h-4 w-4 text-grafana-blue" />
-                  <span>Coverage Rate</span>
+                  <span>Standardization Score</span>
                 </div>
                 <span className={`font-bold ${
                   Number(overallCoverage) >= 80 ? 'text-green-600' :
@@ -80,17 +87,17 @@ const StatsCards = ({ instances, overallCoverage }: Props) => {
             </TooltipTrigger>
             <TooltipContent>
               <p className="max-w-xs">
-                Average coverage across all tag combinations, weighted by dashboard count and instance usage.
+                Overall standardization score based on template adoption and usage across instances.
               </p>
             </TooltipContent>
           </Tooltip>
           <div className="flex items-center justify-between">
-            <span>Total Tag Combinations</span>
-            <span className="font-bold">{getAllDashboards.length}</span>
+            <span>Reused Templates</span>
+            <span className="font-bold text-green-600">{reusedDashboards.length}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span>Instances Analyzed</span>
-            <span className="font-bold">{instances.length}</span>
+            <span>Template Reuse Rate</span>
+            <span className="font-bold text-blue-600">{reusageRate}%</span>
           </div>
         </CardContent>
       </Card>
