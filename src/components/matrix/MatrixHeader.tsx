@@ -1,5 +1,5 @@
 import React from 'react';
-import { Filter } from "lucide-react";
+import { Filter, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import SearchableTagFilter from '../SearchableTagFilter';
@@ -10,6 +10,7 @@ interface Props {
   allTags: string[];
   selectedTags: string[];
   onTagSelect: (tag: string) => void;
+  onExport: () => void;
 }
 
 const MatrixHeader = ({ 
@@ -17,7 +18,8 @@ const MatrixHeader = ({
   onSearchChange, 
   allTags, 
   selectedTags, 
-  onTagSelect 
+  onTagSelect,
+  onExport
 }: Props) => {
   return (
     <div className="flex items-center justify-between">
@@ -30,6 +32,15 @@ const MatrixHeader = ({
           onChange={(e) => onSearchChange(e.target.value)}
           className="px-3 py-1 border rounded-md"
         />
+        <Button
+          onClick={onExport}
+          className="flex items-center gap-2"
+          variant="outline"
+          size="sm"
+        >
+          <Download className="h-4 w-4" />
+          Export to Excel
+        </Button>
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" size="sm">

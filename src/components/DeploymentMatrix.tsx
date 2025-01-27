@@ -3,8 +3,6 @@ import { GrafanaInstance } from "@/types/grafana";
 import MatrixHeader from './matrix/MatrixHeader';
 import MatrixTable from './matrix/MatrixTable';
 import StatsCards from "./stats/StatsCards";
-import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
 import { 
   getAllTags, 
   getTagCombinations, 
@@ -162,26 +160,17 @@ const DeploymentMatrix = ({ instances }: Props) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <StatsCards 
-          instances={instances} 
-          overallCoverage={calculateOverallCoverage()}
-        />
-        <Button
-          onClick={handleExport}
-          className="flex items-center gap-2"
-          variant="outline"
-        >
-          <Download className="h-4 w-4" />
-          Export to Excel
-        </Button>
-      </div>
+      <StatsCards 
+        instances={instances} 
+        overallCoverage={calculateOverallCoverage()}
+      />
       <MatrixHeader
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         allTags={allTags}
         selectedTags={selectedTags}
         onTagSelect={handleTagSelect}
+        onExport={handleExport}
       />
       <MatrixTable
         tagCombinations={sortedTagCombinations}
