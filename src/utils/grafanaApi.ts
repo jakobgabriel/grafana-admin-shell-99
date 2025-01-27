@@ -1,7 +1,5 @@
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { GrafanaInstance, GrafanaInstanceFormData, DashboardData, FolderData } from "@/types/grafana";
-import { Json } from "@/integrations/supabase/types";
 
 interface GrafanaSearchItem {
   id: number;
@@ -102,42 +100,18 @@ export const fetchGrafanaData = async (instance: GrafanaInstanceFormData) => {
 
     const { folders, dashboards } = await processSearchResults(instance, searchResults);
 
-    // Convert the complex types to JSON-compatible format
-    const supabaseData = {
+    const result: GrafanaInstance = {
       name: instance.name,
       url: instance.url,
       api_key: instance.apiKey,
       folders: folders.length,
       dashboards: dashboards.length,
-      folders_list: JSON.parse(JSON.stringify(folders)) as Json,
-      dashboards_list: JSON.parse(JSON.stringify(dashboards)) as Json
-    };
-
-    // Save to Supabase
-    const { error } = await supabase
-      .from('grafana_instances')
-      .upsert(supabaseData);
-
-    if (error) {
-      console.error('Error saving to Supabase:', error);
-      toast.error('Failed to save instance data');
-      return null;
-    }
-
-    await logUserInteraction('fetch_grafana_data', 'GrafanaAPI', {
-      instance_name: instance.name,
-      folders_count: folders.length,
-      dashboards_count: dashboards.length
-    });
-
-    console.log('Successfully processed Grafana instance data:', supabaseData);
-    
-    // Convert back to GrafanaInstance type with proper typing
-    return {
-      ...supabaseData,
       folders_list: folders,
       dashboards_list: dashboards
-    } as GrafanaInstance;
+    };
+
+    console.log('Successfully processed Grafana instance data:', result);
+    return result;
 
   } catch (error) {
     console.error('Error fetching Grafana data:', error);
@@ -148,18 +122,6 @@ export const fetchGrafanaData = async (instance: GrafanaInstanceFormData) => {
 
 export const logUserInteraction = async (eventType: string, component: string, details: any = {}) => {
   console.log(`Logging user interaction: ${eventType} on ${component}`, details);
-  
-  const { error } = await supabase
-    .from('user_interactions')
-    .insert([{
-      event_type: eventType,
-      component,
-      details
-    }]);
-
-  if (error) {
-    console.error('Error logging user interaction:', error);
-  }
 };
 
 export const refreshGrafanaInstance = async (instance: GrafanaInstance) => {
