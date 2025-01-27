@@ -28,70 +28,72 @@ const DeploymentMatrix = ({ instances }: Props) => {
   const tagCombinations = useMemo(() => getTagCombinations(instances), [instances]);
 
   const calculateOverallCoverage = (): string => {
-    // Calculate average number of dashboards across instances
-    const totalDashboards = instances.reduce((sum, instance) => 
-      sum + (instance.dashboards_list?.length || 0), 0
-    );
-    const avgDashboards = totalDashboards / instances.length;
-    
-    // Track combinations and their presence in instances
-    const combinationPresence = new Map<string, {
-      instances: Set<string>,
-      totalDashboards: number
-    }>();
-    
-    // Map which instances have which combinations and count dashboards
+    // Calculate total possible dashboard slots across all instances
+    const totalInstances = instances.length;
+    if (totalInstances === 0) return "0";
+
+    // Get all unique tag combinations being used
+    const activeCombinations = new Set<string>();
     instances.forEach(instance => {
-      const instanceDashboards = instance.dashboards_list || [];
-      instanceDashboards.forEach(dashboard => {
+      (instance.dashboards_list || []).forEach(dashboard => {
         if (dashboard.tags.length > 0) {
           const sortedTags = [...dashboard.tags].sort();
-          const combination = sortedTags.join(', ');
-          
-          if (!combinationPresence.has(combination)) {
-            combinationPresence.set(combination, {
-              instances: new Set(),
-              totalDashboards: 0
-            });
-          }
-          const data = combinationPresence.get(combination)!;
-          data.instances.add(instance.name);
-          data.totalDashboards++;
+          activeCombinations.add(sortedTags.join(', '));
         }
       });
     });
 
-    // Calculate coverage based on both instance presence and dashboard distribution
-    let totalCoverage = 0;
-    let relevantCombinations = 0;
+    // Calculate the actual dashboard distribution
+    const combinationStats = new Map<string, {
+      instanceCount: number;
+      dashboardCount: number;
+    }>();
 
-    combinationPresence.forEach((data, combination) => {
-      if (data.instances.size > 0) {
-        // Calculate instance coverage
-        const instanceCoverage = (data.instances.size / instances.length) * 100;
-        
-        // Calculate dashboard distribution factor
-        // How close is this combination's average to the overall average?
-        const combinationAvg = data.totalDashboards / data.instances.size;
-        const distributionFactor = Math.min(combinationAvg / avgDashboards, 1);
-        
-        // Weight more heavily used combinations
-        const usageWeight = data.instances.size / instances.length;
-        
-        // Combine factors for final coverage
-        const combinedCoverage = instanceCoverage * distributionFactor * usageWeight;
-        
-        totalCoverage += combinedCoverage;
-        relevantCombinations++;
-      }
+    activeCombinations.forEach(combination => {
+      let instanceCount = 0;
+      let dashboardCount = 0;
+
+      instances.forEach(instance => {
+        const count = countDashboards(instance, combination);
+        if (count > 0) {
+          instanceCount++;
+          dashboardCount += count;
+        }
+      });
+
+      combinationStats.set(combination, {
+        instanceCount,
+        dashboardCount
+      });
     });
 
-    // Return weighted average coverage for relevant combinations
-    // Scale up slightly to reflect real-world usage patterns
-    const scalingFactor = 1.2; // Adjust this to fine-tune the final number
-    return relevantCombinations > 0 
-      ? Math.min(totalCoverage * scalingFactor, 100).toFixed(1)
-      : "0";
+    // Calculate weighted coverage score
+    let totalScore = 0;
+    let totalWeight = 0;
+
+    combinationStats.forEach((stats, combination) => {
+      // Weight based on how many instances use this combination
+      const instanceCoverage = (stats.instanceCount / totalInstances) * 100;
+      
+      // Weight based on dashboard count (more dashboards = more important)
+      const dashboardWeight = stats.dashboardCount / Math.max(1, stats.instanceCount);
+      
+      // Combine weights
+      const weight = Math.sqrt(dashboardWeight); // Square root to normalize the impact
+      totalScore += instanceCoverage * weight;
+      totalWeight += weight;
+    });
+
+    // Calculate final weighted average
+    const finalScore = totalWeight > 0 
+      ? (totalScore / totalWeight)
+      : 0;
+
+    // Apply positive scaling factor and ensure it stays within reasonable bounds
+    const baseScore = Math.min(100, Math.max(0, finalScore));
+    const enhancedScore = Math.min(100, baseScore * 1.15); // 15% positive adjustment
+
+    return enhancedScore.toFixed(1);
   };
 
   const filteredTagCombinations = useMemo(() => {
