@@ -2,7 +2,7 @@ import React from 'react';
 import { Database, ChartBar, Tag, GitCompare, AlertTriangle, Info } from "lucide-react";
 import { GrafanaInstance } from "@/types/grafana";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 
 interface Props {
   instances: GrafanaInstance[];
@@ -14,6 +14,27 @@ const StatsCards = ({ instances, overallCoverage }: Props) => {
   
   const getAllDashboards = instances.flatMap(instance => instance.dashboards_list || []);
   const allTags = new Set(getAllDashboards.flatMap(dashboard => dashboard.tags || []));
+  
+  // Calculate process weights based on tag distribution
+  const tagDistribution = new Map<string, number>();
+  instances.forEach(instance => {
+    const instanceTags = new Set(
+      (instance.dashboards_list || []).flatMap(dashboard => dashboard.tags || [])
+    );
+    instanceTags.forEach(tag => {
+      tagDistribution.set(tag, (tagDistribution.get(tag) || 0) + 1);
+    });
+  });
+
+  // Calculate process weights
+  const processWeights = Array.from(tagDistribution.entries()).map(([tag, count]) => ({
+    tag,
+    weight: count / instances.length,
+    instanceCount: count
+  }));
+
+  // Sort by weight descending
+  processWeights.sort((a, b) => b.weight - a.weight);
   
   const avgDashboards = getAllDashboards.length / instances.length;
   const lowDashboardInstances = instances
@@ -50,12 +71,19 @@ const StatsCards = ({ instances, overallCoverage }: Props) => {
                     <li>For each process-specific dashboard:
                       <ul className="list-disc pl-4 mt-1">
                         <li>Coverage = (Instances with dashboard / Instances with process) × 100</li>
-                        <li>Process weight = Number of instances with process / Total instances</li>
+                        <li>Process weight = Instances with process / Total instances</li>
                       </ul>
                     </li>
+                    <li>Process weights in your environment:</li>
+                    <ul className="list-disc pl-4 mt-1 max-h-32 overflow-y-auto">
+                      {processWeights.map(({ tag, weight, instanceCount }) => (
+                        <li key={tag} className="text-xs">
+                          {tag}: {(weight * 100).toFixed(1)}% ({instanceCount} instances)
+                        </li>
+                      ))}
+                    </ul>
                     <li>Final score considers both coverage and process availability</li>
                   </ol>
-                  <p className="mt-2 text-xs italic">This score reflects how well dashboards are implemented across instances, accounting for process availability.</p>
                   <div className="mt-3 pt-2 border-t border-gray-200">
                     <p className="text-sm font-medium mb-1">Score Interpretation:</p>
                     <ul className="list-disc pl-4 text-xs space-y-1">
