@@ -42,20 +42,22 @@ const MatrixTable = ({
             {instances.map((instance, index) => (
               <TableHead 
                 key={index}
-                className="cursor-pointer min-w-[80px] h-[140px] align-bottom"
+                className="cursor-pointer w-[40px] p-0"
                 onClick={() => onSort(instance.name)}
               >
-                <div className="flex items-center justify-center transform -rotate-90 origin-center translate-y-[-20px]">
-                  <span className="whitespace-nowrap">{instance.name}</span>
-                  {sortConfig?.key === instance.name && (
-                    <span className="ml-2 inline-block transform rotate-90">
-                      {sortConfig.direction === 'asc' ? (
-                        <ArrowUp className="h-4 w-4" />
-                      ) : (
-                        <ArrowDown className="h-4 w-4" />
-                      )}
-                    </span>
-                  )}
+                <div className="flex items-center justify-center h-[180px] relative">
+                  <div className="absolute transform -rotate-90 whitespace-nowrap origin-center">
+                    <span>{instance.name}</span>
+                    {sortConfig?.key === instance.name && (
+                      <span className="ml-2 inline-block transform rotate-90">
+                        {sortConfig.direction === 'asc' ? (
+                          <ArrowUp className="h-4 w-4" />
+                        ) : (
+                          <ArrowDown className="h-4 w-4" />
+                        )}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </TableHead>
             ))}
@@ -78,7 +80,7 @@ const MatrixTable = ({
                 return (
                   <TableCell 
                     key={instanceIdx}
-                    className={`${getCellColor(count, maxDashboards)} transition-colors duration-300 text-center font-medium rounded-sm`}
+                    className={`${getCellColor(count, maxDashboards)} transition-colors duration-300 text-center font-medium p-2 w-[40px]`}
                   >
                     {count}
                   </TableCell>
