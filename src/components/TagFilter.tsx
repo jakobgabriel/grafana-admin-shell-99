@@ -1,42 +1,31 @@
 import React from 'react';
 import { Badge } from "@/components/ui/badge";
-import { logUserInteraction } from "@/utils/userInteractions";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Props {
-  tags: string[];
+  allTags: string[];
   selectedTags: string[];
   onTagSelect: (tag: string) => void;
 }
 
-const TagFilter = ({ tags, selectedTags, onTagSelect }: Props) => {
-  const handleTagClick = async (tag: string) => {
-    await logUserInteraction({
-      event_type: 'tag_filter',
-      component: 'TagFilter',
-      details: { 
-        tag,
-        action: selectedTags.includes(tag) ? 'remove' : 'add'
-      }
-    });
-    onTagSelect(tag);
-  };
+const TagFilter = ({ allTags, selectedTags, onTagSelect }: Props) => {
+  if (!allTags.length) return null;
 
   return (
-    <div className="space-y-4">
-      <h3 className="font-semibold">Filter by Tags</h3>
-      <div className="flex flex-wrap gap-2">
-        {tags.map((tag) => (
+    <ScrollArea className="w-full whitespace-nowrap">
+      <div className="flex gap-2 pb-4">
+        {allTags.map((tag) => (
           <Badge
             key={tag}
             variant={selectedTags.includes(tag) ? "default" : "outline"}
-            className="cursor-pointer"
-            onClick={() => handleTagClick(tag)}
+            className="cursor-pointer hover:bg-grafana-accent/10"
+            onClick={() => onTagSelect(tag)}
           >
             {tag}
           </Badge>
         ))}
       </div>
-    </div>
+    </ScrollArea>
   );
 };
 
