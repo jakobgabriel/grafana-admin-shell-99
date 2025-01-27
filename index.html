@@ -1,17 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Grafana Dashboard Explorer</title>
-    <meta name="description" content="Grafana Dashboard Explorer - GitHub Version" />
-    <meta name="author" content="Lovable" />
-    <meta property="og:image" content="/og-image.png" />
-    <script type="module" crossorigin src="/grafana-admin-shell-99/assets/index-rccUb5GK.js"></script>
-    <link rel="stylesheet" crossorigin href="/grafana-admin-shell-99/assets/index-fPyV0n01.css">
-  </head>
-  <body>
-    <div id="root"></div>
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
-  </body>
-</html>
+---
+layout: default
+title: Home
+---
+
+<div class="home">
+    <h1>Grafana Dashboard Explorer</h1>
+    
+    {% assign instances = site.data.grafana.instances %}
+    
+    <div class="instances-grid">
+        {% for instance in instances %}
+        <div class="instance-card">
+            <h2>{{ instance.name }}</h2>
+            <p>{{ instance.folders }} folders, {{ instance.dashboards }} dashboards</p>
+            
+            <div class="folders">
+                {% for folder in instance.folders_list %}
+                <div class="folder">
+                    <h3>{{ folder.title }}</h3>
+                    <ul class="dashboards-list">
+                        {% assign folder_dashboards = instance.dashboards_list | where: "folder_id", folder.id %}
+                        {% for dashboard in folder_dashboards %}
+                        <li class="dashboard-item">
+                            <h4>{{ dashboard.title }}</h4>
+                            <p>{{ dashboard.description }}</p>
+                            <div class="tags">
+                                {% for tag in dashboard.tags %}
+                                <span class="tag">{{ tag }}</span>
+                                {% endfor %}
+                            </div>
+                            <a href="{{ dashboard.url }}" target="_blank" rel="noopener noreferrer">
+                                View Dashboard
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
