@@ -1,10 +1,11 @@
 import React from 'react';
 import SearchBar from './SearchBar';
 import { Button } from "@/components/ui/button";
-import { Grid, List, Layout, LayoutDashboard, Database } from "lucide-react";
+import { Grid, List, Layout, LayoutDashboard, Database, Navigation } from "lucide-react";
 import InstancesSection from './InstancesSection';
 import OverviewStats from './OverviewStats';
 import DeploymentMatrix from './DeploymentMatrix';
+import { useNavigate } from 'react-router-dom';
 
 interface SearchAndTabsProps {
   searchQuery: string;
@@ -41,6 +42,7 @@ const SearchAndTabs = ({
 }: SearchAndTabsProps) => {
   const [activeView, setActiveView] = React.useState('instances');
   const [viewMode, setViewMode] = React.useState<'list' | 'grid' | 'compact'>('list');
+  const navigate = useNavigate();
 
   return (
     <>
@@ -74,6 +76,14 @@ const SearchAndTabs = ({
             >
               <Database className="w-4 h-4" />
               Deployment Matrix
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => navigate('/management')}
+              className="flex items-center gap-2"
+            >
+              <Navigation className="w-4 h-4" />
+              Statistics
             </Button>
           </div>
         </div>
