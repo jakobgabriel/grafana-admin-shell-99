@@ -1,6 +1,6 @@
 import React from 'react';
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 interface Props {
   allTags: string[];
@@ -12,19 +12,20 @@ const TagFilter = ({ allTags, selectedTags, onTagSelect }: Props) => {
   if (!allTags.length) return null;
 
   return (
-    <ScrollArea className="w-full whitespace-nowrap">
-      <div className="flex gap-2 pb-4">
+    <ScrollArea className="w-full" type="scroll">
+      <div className="flex gap-2 pb-4 px-1">
         {allTags.map((tag) => (
           <Badge
             key={tag}
             variant={selectedTags.includes(tag) ? "default" : "outline"}
-            className="cursor-pointer hover:bg-grafana-accent/10"
+            className="cursor-pointer hover:bg-grafana-accent/10 whitespace-nowrap"
             onClick={() => onTagSelect(tag)}
           >
             {tag}
           </Badge>
         ))}
       </div>
+      <ScrollBar orientation="horizontal" />
     </ScrollArea>
   );
 };
