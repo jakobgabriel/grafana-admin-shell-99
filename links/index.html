@@ -1,0 +1,30 @@
+---
+layout: default
+title: Links
+---
+
+<div class="links-page">
+    <h1>Dashboard Links</h1>
+    
+    {% for instance in site.data.grafana.instances %}
+    <div class="instance-section">
+        <h2>{{ instance.name }}</h2>
+        <div class="links-grid">
+            {% for dashboard in instance.dashboards_list %}
+            <div class="link-card">
+                <h3>{{ dashboard.title }}</h3>
+                <p>{{ dashboard.description }}</p>
+                <div class="tags">
+                    {% for tag in dashboard.tags %}
+                    <span class="tag">{{ tag }}</span>
+                    {% endfor %}
+                </div>
+                <a href="{{ dashboard.url }}" target="_blank" rel="noopener noreferrer" class="dashboard-link">
+                    View Dashboard
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>

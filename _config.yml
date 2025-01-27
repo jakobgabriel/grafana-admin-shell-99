@@ -18,14 +18,10 @@ exclude:
   - Gemfile
   - Gemfile.lock
 
-collections:
-  dashboards:
-    output: true
-    permalink: /:collection/:name
+permalink: pretty
 
 defaults:
   - scope:
       path: ""
-      type: "dashboards"
     values:
-      layout: "dashboard"
+      layout: default
