@@ -42,17 +42,19 @@ const MatrixTable = ({
             {instances.map((instance, index) => (
               <TableHead 
                 key={index}
-                className="cursor-pointer min-w-[150px]"
+                className="cursor-pointer min-w-[80px] h-[140px] align-bottom"
                 onClick={() => onSort(instance.name)}
               >
-                <div className="flex items-center">
-                  {instance.name}
+                <div className="flex items-center justify-center transform -rotate-90 origin-center translate-y-[-20px]">
+                  <span className="whitespace-nowrap">{instance.name}</span>
                   {sortConfig?.key === instance.name && (
-                    sortConfig.direction === 'asc' ? (
-                      <ArrowUp className="h-4 w-4 ml-2" />
-                    ) : (
-                      <ArrowDown className="h-4 w-4 ml-2" />
-                    )
+                    <span className="ml-2 inline-block transform rotate-90">
+                      {sortConfig.direction === 'asc' ? (
+                        <ArrowUp className="h-4 w-4" />
+                      ) : (
+                        <ArrowDown className="h-4 w-4" />
+                      )}
+                    </span>
                   )}
                 </div>
               </TableHead>

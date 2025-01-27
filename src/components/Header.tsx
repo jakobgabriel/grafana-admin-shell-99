@@ -26,7 +26,7 @@ const Header = ({ onOpenAdminPanel, onPasteContent, showWelcome = true }: Props)
             className="flex items-center gap-2"
           >
             <Navigation className="w-4 h-4" />
-            Management Overview
+            Statistics
           </Button>
           <Button
             onClick={onOpenAdminPanel}
