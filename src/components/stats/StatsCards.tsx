@@ -1,5 +1,5 @@
 import React from 'react';
-import { Database, ChartBar, Tag, GitCompare, AlertTriangle } from "lucide-react";
+import { Database, ChartBar, Tag, GitCompare, AlertTriangle, Info } from "lucide-react";
 import { GrafanaInstance } from "@/types/grafana";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -54,7 +54,30 @@ const StatsCards = ({ instances, overallCoverage }: Props) => {
       <TooltipProvider>
         <Card>
           <CardHeader className="space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Dashboard Coverage</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium">Dashboard Coverage</CardTitle>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="h-4 w-4 text-grafana-blue cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-[350px] p-4">
+                    <p className="font-semibold mb-2">Coverage Rate Formula:</p>
+                    <ol className="list-decimal pl-4 space-y-2 text-sm">
+                      <li>For each tag combination, calculate:
+                        <ul className="list-disc pl-4 mt-1">
+                          <li>Instance coverage = (Instances with dashboards / Total instances) × 100</li>
+                          <li>Dashboard weight = √(Number of dashboards / Instances using combination)</li>
+                        </ul>
+                      </li>
+                      <li>Calculate weighted average across all combinations</li>
+                      <li>Apply 15% positive adjustment to reflect implementation value</li>
+                    </ol>
+                    <p className="mt-2 text-xs italic">This formula emphasizes both breadth (across instances) and depth (number of dashboards) of implementation.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             <CardDescription>Average coverage across all tag combinations</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -74,8 +97,7 @@ const StatsCards = ({ instances, overallCoverage }: Props) => {
               </TooltipTrigger>
               <TooltipContent>
                 <p className="max-w-xs">
-                  Average coverage across all tag combinations. For each combination:
-                  Coverage = (Instances with dashboards / Total instances) × 100
+                  Average coverage across all tag combinations, weighted by dashboard count and instance usage.
                 </p>
               </TooltipContent>
             </Tooltip>
