@@ -27,9 +27,9 @@ const DeploymentMatrix = ({ instances }: Props) => {
   const allTags = useMemo(() => getAllTags(instances), [instances]);
   const tagCombinations = useMemo(() => getTagCombinations(instances), [instances]);
 
-  // Calculate overall coverage with improved logic
+  // Calculate overall coverage with improved logic focusing on actual usage
   const calculateOverallCoverage = () => {
-    // Count how many instances have each tag combination
+    // Track combinations and their presence in instances
     const combinationPresence = new Map<string, Set<string>>();
     
     // First, map which instances have which combinations
@@ -47,24 +47,31 @@ const DeploymentMatrix = ({ instances }: Props) => {
       });
     });
 
-    // Calculate coverage based on where combinations are actually used
+    // Calculate coverage based on actual usage patterns
     let totalCoverage = 0;
     let relevantCombinations = 0;
 
     combinationPresence.forEach((instancesWithCombination, combination) => {
-      // Only consider combinations that appear in at least one instance
       if (instancesWithCombination.size > 0) {
-        // Calculate what percentage of instances have this combination
-        // compared to the number of instances where it appears at least once
-        const coverage = (instancesWithCombination.size / instances.length) * 100;
-        totalCoverage += coverage;
+        // Calculate coverage relative to instances where this combination appears
+        // This makes the metric more meaningful as it considers actual usage patterns
+        const instancesWithAnyDashboards = instances.filter(instance => 
+          (instance.dashboards_list || []).some(d => d.tags.length > 0)
+        ).length;
+        
+        // Calculate coverage relative to instances that have any dashboards
+        const coverage = (instancesWithCombination.size / instancesWithAnyDashboards) * 100;
+        
+        // Weight the coverage by how many instances use this combination
+        const weight = instancesWithCombination.size / instances.length;
+        totalCoverage += coverage * weight;
         relevantCombinations++;
       }
     });
 
-    // Return average coverage only for relevant combinations
+    // Return weighted average coverage for relevant combinations
     return relevantCombinations > 0 
-      ? (totalCoverage / relevantCombinations).toFixed(1) 
+      ? (totalCoverage).toFixed(1) 
       : "0";
   };
 
