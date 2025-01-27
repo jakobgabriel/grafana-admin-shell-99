@@ -2,10 +2,22 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = "https://fxlsnqizmdjdsnqbksnm.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ4bHNucWl6bWRqZHNucWJrc25tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMDMyNjgsImV4cCI6MjA1MzU3OTI2OH0.3V-qjEDq-jSbfaDWxooJbg95dEj7aADoBeSdOyPrrt8";
+const ONLINE_SUPABASE_URL = "https://fxlsnqizmdjdsnqbksnm.supabase.co";
+const ONLINE_SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ4bHNucWl6bWRqZHNucWJrc25tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgwMDMyNjgsImV4cCI6MjA1MzU3OTI2OH0.3V-qjEDq-jSbfaDWxooJbg95dEj7aADoBeSdOyPrrt8";
+
+const LOCAL_SUPABASE_URL = "http://localhost:8000";
+const LOCAL_SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
+
+const USE_LOCAL = import.meta.env.VITE_USE_LOCAL_SUPABASE === "true";
+
+console.log("Supabase configuration:", {
+  useLocal: USE_LOCAL,
+  url: USE_LOCAL ? LOCAL_SUPABASE_URL : ONLINE_SUPABASE_URL
+});
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
-
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+export const supabase = createClient<Database>(
+  USE_LOCAL ? LOCAL_SUPABASE_URL : ONLINE_SUPABASE_URL,
+  USE_LOCAL ? LOCAL_SUPABASE_KEY : ONLINE_SUPABASE_KEY
+);
