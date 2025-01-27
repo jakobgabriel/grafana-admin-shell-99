@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { useToast } from "@/hooks/use-toast";
-import AdminPanel from "@/components/AdminPanel";
 import Header from "@/components/Header";
 import SearchAndTabs from "@/components/SearchAndTabs";
 import { useGrafanaInstances } from "@/hooks/useGrafanaInstances";
-import { GrafanaInstance, GrafanaInstanceFormData } from "@/types/grafana";
+import { GrafanaInstance } from "@/types/grafana";
 import { logUserInteraction } from "@/utils/userInteractions";
 
 const demoInstances: GrafanaInstance[] = [
@@ -80,7 +79,6 @@ const demoInstances: GrafanaInstance[] = [
 ];
 
 const Index = () => {
-  const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
   const [expandedInstances, setExpandedInstances] = useState<Record<string, boolean>>({});
@@ -89,61 +87,7 @@ const Index = () => {
 
   const {
     instances,
-    addInstance,
-    removeInstance,
-    refreshInstance,
-    addPastedInstance
   } = useGrafanaInstances();
-
-  const handlePasteContent = async (data: { content: any[], name: string, url: string }) => {
-    console.log('Processing pasted content:', data);
-    
-    try {
-      // Group items by folder
-      const folders = data.content
-        .filter(item => item.type === 'dash-folder')
-        .map(folder => ({
-          id: folder.id.toString(),
-          title: folder.title
-        }));
-
-      const dashboards = data.content
-        .filter(item => item.type === 'dash-db')
-        .map(dashboard => ({
-          title: dashboard.title,
-          description: dashboard.title,
-          url: dashboard.url,
-          tags: dashboard.tags,
-          folderId: dashboard.folderId?.toString() || '0'
-        }));
-
-      const newInstance: GrafanaInstance = {
-        name: data.name,
-        url: data.url,
-        api_key: '',
-        folders: folders.length,
-        dashboards: dashboards.length,
-        folders_list: folders,
-        dashboards_list: dashboards
-      };
-
-      const success = await addPastedInstance(newInstance);
-      
-      if (success) {
-        toast({
-          title: "Content added successfully",
-          description: `Added ${dashboards.length} dashboards from ${folders.length} folders`,
-        });
-      }
-    } catch (error) {
-      console.error('Error processing pasted content:', error);
-      toast({
-        title: "Error processing content",
-        description: "Failed to process and store the pasted content",
-        variant: "destructive",
-      });
-    }
-  };
 
   const toggleFolder = async (folderId: string) => {
     await logUserInteraction({
@@ -198,14 +142,6 @@ const Index = () => {
   return (
     <div className="container mx-auto p-4">
       <Header 
-        onOpenAdminPanel={() => {
-          logUserInteraction({
-            event_type: 'open_admin_panel',
-            component: 'Index'
-          });
-          setIsAdminPanelOpen(true);
-        }}
-        onPasteContent={handlePasteContent}
         showWelcome={instances.length === 0}
       />
       
@@ -221,27 +157,6 @@ const Index = () => {
         onTagSelect={handleTagSelect}
         onFolderToggle={toggleFolder}
         onInstanceToggle={toggleInstance}
-        onRemoveInstance={removeInstance}
-        onRefreshInstance={refreshInstance}
-        onOpenAdminPanel={() => {
-          logUserInteraction({
-            event_type: 'open_admin_panel',
-            component: 'SearchAndTabs'
-          });
-          setIsAdminPanelOpen(true);
-        }}
-      />
-
-      <AdminPanel
-        isOpen={isAdminPanelOpen}
-        onClose={() => {
-          logUserInteraction({
-            event_type: 'close_admin_panel',
-            component: 'Index'
-          });
-          setIsAdminPanelOpen(false);
-        }}
-        onAddInstance={addInstance}
       />
     </div>
   );

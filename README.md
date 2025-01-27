@@ -1,28 +1,61 @@
-# Grafana Dashboard Explorer
+# Grafana Dashboard Explorer (GitHub Version)
 
-A web application for managing and exploring Grafana dashboards across multiple instances. Built with React, TypeScript, and Supabase.
+A static web application for exploring Grafana dashboards across multiple instances. Built with React and TypeScript, designed to be hosted on GitHub Pages.
 
-## Features
+## Overview
 
-- View and manage multiple Grafana instances
+This application allows you to:
+- View Grafana dashboards from multiple instances
 - Browse folders and dashboards
 - Filter by tags
-- Import dashboard configurations
-- Overview statistics and metrics
-- Role-based access control (admin required for adding instances)
+- View deployment matrices and statistics
 
-## Prerequisites
+## Setup Instructions
 
-Before you begin, ensure you have installed:
+1. Fork this repository
 
-- [Node.js](https://nodejs.org/) (v18 or higher)
-- [npm](https://www.npmjs.com/) (comes with Node.js)
-- [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) (for containerized deployment)
-- [Git](https://git-scm.com/)
+2. Create your data file:
+   - Create a file named `grafana-data.json` in your repository
+   - Format it according to the example below:
+   ```json
+   [
+     {
+       "name": "Production Grafana",
+       "url": "https://your-grafana-url",
+       "folders_list": [
+         { "id": "1", "title": "System Monitoring" }
+       ],
+       "dashboards_list": [
+         {
+           "title": "System Overview",
+           "description": "System metrics dashboard",
+           "url": "https://your-grafana-url/d/abc",
+           "tags": ["system", "monitoring"],
+           "folderId": "1"
+         }
+       ]
+     }
+   ]
+   ```
 
-## Quick Start with Docker
+3. Configure GitHub Pages:
+   - Go to your repository settings
+   - Navigate to Pages section
+   - Select 'GitHub Actions' as the source
+   - Choose the main/master branch and /docs folder
 
-The easiest way to get started is using Docker Compose:
+4. Update the repository URL:
+   - Open `src/hooks/useGrafanaInstances.ts`
+   - Update the repository path in `fetchGrafanaData('your-username/your-repo')`
+
+## Development
+
+### Prerequisites
+
+- Node.js (v18 or higher)
+- npm (comes with Node.js)
+
+### Local Development
 
 1. Clone the repository:
 ```bash
@@ -30,134 +63,35 @@ git clone <your-repo-url>
 cd <repo-name>
 ```
 
-2. Create a `.env` file with your Supabase credentials:
-```env
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
-
-3. Start the application:
-```bash
-docker-compose up -d
-```
-
-The application will be available at `http://localhost:8080`
-
-## Local Development Setup
-
-If you prefer to run the application without Docker:
-
-### 1. Install Dependencies
-
+2. Install dependencies:
 ```bash
 npm install
 ```
 
-### 2. Set Up Local Supabase
-
-1. Start Supabase locally:
-```bash
-supabase start
-```
-
-2. Create the required tables using the SQL from the setup instructions.
-
-3. Update the Supabase client configuration:
-
-Create a `.env.local` file in the project root with your local Supabase credentials:
-
-```env
-VITE_SUPABASE_URL=<your-local-supabase-url>
-VITE_SUPABASE_ANON_KEY=<your-local-supabase-anon-key>
-```
-
-### 3. Start the Development Server
-
+3. Start the development server:
 ```bash
 npm run dev
 ```
+
+The application will be available at `http://localhost:8080`
+
+### Building for Production
+
+```bash
+npm run build
+```
+
+The built files will be in the `dist` directory, ready to be deployed to GitHub Pages.
 
 ## Project Structure
 
 ```
 src/
-├── components/        # React components
-├── hooks/            # Custom React hooks
-├── integrations/     # External service integrations
-├── types/           # TypeScript type definitions
-└── utils/           # Utility functions
+├── components/     # React components
+├── hooks/         # Custom React hooks
+├── types/         # TypeScript type definitions
+└── utils/         # Utility functions
 ```
-
-## User Roles and Permissions
-
-The application uses role-based access control:
-
-- **Admin Users**: Can add, edit, and remove Grafana instances
-- **Regular Users**: Can view and explore existing dashboards
-
-To grant admin access:
-1. Access your Supabase database
-2. Insert a record in the `user_roles` table with:
-   - user_id: The user's UUID
-   - role: 'admin'
-
-## Deployment Options
-
-### 1. Docker Deployment (Recommended)
-
-The application can be deployed using Docker Compose:
-
-```bash
-# Build and start containers
-docker-compose up -d
-
-# View logs
-docker-compose logs -f
-
-# Stop containers
-docker-compose down
-```
-
-### 2. Manual Deployment
-
-1. Build the application:
-```bash
-npm run build
-```
-
-2. Deploy the contents of the `dist` directory to your web server.
-
-## Environment Variables
-
-Required environment variables:
-
-- `VITE_SUPABASE_URL`: Supabase project URL
-- `VITE_SUPABASE_ANON_KEY`: Supabase anonymous key
-
-## Environment Setup
-
-1. Copy the example environment file:
-```bash
-cp .env.example .env
-```
-
-2. Update the `.env` file with your Supabase credentials:
-```env
-# Get these values from your Supabase project settings
-VITE_SUPABASE_URL=your_supabase_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-
-# Set a secure password for the local Supabase instance
-POSTGRES_PASSWORD=your-super-secret-password
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
 
 ## License
 
