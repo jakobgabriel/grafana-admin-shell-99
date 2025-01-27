@@ -3,7 +3,6 @@ description: A static web application for exploring Grafana dashboards across mu
 baseurl: "/grafana-admin-shell-99"
 url: "https://jakobgabriel.github.io"
 
-# Build settings
 markdown: kramdown
 theme: minima
 plugins:
@@ -19,9 +18,3 @@ exclude:
   - Gemfile.lock
 
 permalink: pretty
-
-defaults:
-  - scope:
-      path: ""
-    values:
-      layout: default

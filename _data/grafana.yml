@@ -27,3 +27,57 @@ instances:
           - performance
           - traces
         folder_id: "2"
+  
+  - name: Staging Grafana
+    url: https://staging.grafana.org
+    folders: 2
+    dashboards: 5
+    folders_list:
+      - id: "1"
+        title: Development Metrics
+      - id: "2"
+        title: Testing Dashboards
+    dashboards_list:
+      - title: Development Overview
+        description: Development environment metrics and performance indicators
+        url: https://staging.grafana.org/d/dev
+        tags:
+          - development
+          - metrics
+        folder_id: "1"
+      - title: Test Results
+        description: Automated test results and coverage metrics
+        url: https://staging.grafana.org/d/tests
+        tags:
+          - testing
+          - coverage
+        folder_id: "2"
+
+  - name: Development Grafana
+    url: https://dev.grafana.org
+    folders: 4
+    dashboards: 6
+    folders_list:
+      - id: "1"
+        title: Experimental
+      - id: "2"
+        title: Prototypes
+      - id: "3"
+        title: Features
+      - id: "4"
+        title: Bug Tracking
+    dashboards_list:
+      - title: Feature Metrics
+        description: New feature performance and usage metrics
+        url: https://dev.grafana.org/d/features
+        tags:
+          - features
+          - metrics
+        folder_id: "3"
+      - title: Bug Reports
+        description: Real-time bug tracking and monitoring
+        url: https://dev.grafana.org/d/bugs
+        tags:
+          - bugs
+          - monitoring
+        folder_id: "4"

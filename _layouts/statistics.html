@@ -3,7 +3,10 @@ layout: default
 ---
 
 <div class="statistics-page">
-    <h1>Statistics Overview</h1>
+    <div class="hero-section">
+        <h1 class="hero-title">Statistics Overview</h1>
+        <p class="hero-description">Comprehensive metrics across all Grafana instances</p>
+    </div>
     
     <div class="stats-grid">
         <div class="stat-card">
@@ -35,6 +38,20 @@ layout: default
             <div class="bar-item">
                 <div class="bar" style="height: {{ instance.dashboards | times: 20 }}px"></div>
                 <span class="label">{{ instance.name }}</span>
+                <span class="value">{{ instance.dashboards }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="chart-section">
+        <h2>Folder Distribution</h2>
+        <div class="bar-chart">
+            {% for instance in site.data.grafana.instances %}
+            <div class="bar-item">
+                <div class="bar" style="height: {{ instance.folders | times: 20 }}px"></div>
+                <span class="label">{{ instance.name }}</span>
+                <span class="value">{{ instance.folders }}</span>
             </div>
             {% endfor %}
         </div>
