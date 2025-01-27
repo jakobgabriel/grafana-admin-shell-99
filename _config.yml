@@ -1,7 +1,7 @@
 title: Grafana Dashboard Explorer
 description: A static web application for exploring Grafana dashboards across multiple instances
-baseurl: ""
-url: ""
+baseurl: "/grafana-admin-shell-99"
+url: "https://jakobgabriel.github.io"
 
 # Build settings
 markdown: kramdown
