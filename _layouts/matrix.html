@@ -1,0 +1,48 @@
+---
+layout: default
+---
+
+<div class="matrix-page">
+    <h1>Deployment Matrix</h1>
+    
+    <div class="matrix-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Dashboard / Instance</th>
+                    {% for instance in site.data.grafana.instances %}
+                    <th>{{ instance.name }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% assign all_dashboards = "" | split: "" %}
+                {% for instance in site.data.grafana.instances %}
+                    {% for dashboard in instance.dashboards_list %}
+                        {% assign all_dashboards = all_dashboards | push: dashboard.title %}
+                    {% endfor %}
+                {% endfor %}
+                {% assign unique_dashboards = all_dashboards | uniq | sort %}
+                
+                {% for dashboard in unique_dashboards %}
+                <tr>
+                    <td>{{ dashboard }}</td>
+                    {% for instance in site.data.grafana.instances %}
+                        <td class="matrix-cell">
+                            {% assign has_dashboard = false %}
+                            {% for d in instance.dashboards_list %}
+                                {% if d.title == dashboard %}
+                                    {% assign has_dashboard = true %}
+                                {% endif %}
+                            {% endfor %}
+                            {% if has_dashboard %}
+                            <span class="checkmark">✓</span>
+                            {% endif %}
+                        </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

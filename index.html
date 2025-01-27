@@ -6,6 +6,21 @@ title: Home
 <div class="home">
     <h1>Grafana Dashboard Explorer</h1>
     
+    <div class="navigation-cards">
+        <a href="{{ '/statistics' | relative_url }}" class="nav-card">
+            <h2>Statistics Overview</h2>
+            <p>View dashboard statistics and metrics</p>
+        </a>
+        <a href="{{ '/matrix' | relative_url }}" class="nav-card">
+            <h2>Deployment Matrix</h2>
+            <p>Compare dashboard deployments across instances</p>
+        </a>
+        <a href="{{ '/links' | relative_url }}" class="nav-card">
+            <h2>Dashboard Links</h2>
+            <p>Browse all dashboard links</p>
+        </a>
+    </div>
+
     {% assign instances = site.data.grafana.instances %}
     
     <div class="instances-grid">

@@ -1,0 +1,42 @@
+---
+layout: default
+---
+
+<div class="statistics-page">
+    <h1>Statistics Overview</h1>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Total Instances</h3>
+            <p class="stat-number">{{ site.data.grafana.instances | size }}</p>
+        </div>
+        <div class="stat-card">
+            <h3>Total Dashboards</h3>
+            {% assign total_dashboards = 0 %}
+            {% for instance in site.data.grafana.instances %}
+                {% assign total_dashboards = total_dashboards | plus: instance.dashboards %}
+            {% endfor %}
+            <p class="stat-number">{{ total_dashboards }}</p>
+        </div>
+        <div class="stat-card">
+            <h3>Total Folders</h3>
+            {% assign total_folders = 0 %}
+            {% for instance in site.data.grafana.instances %}
+                {% assign total_folders = total_folders | plus: instance.folders %}
+            {% endfor %}
+            <p class="stat-number">{{ total_folders }}</p>
+        </div>
+    </div>
+
+    <div class="chart-section">
+        <h2>Dashboard Distribution</h2>
+        <div class="bar-chart">
+            {% for instance in site.data.grafana.instances %}
+            <div class="bar-item">
+                <div class="bar" style="height: {{ instance.dashboards | times: 20 }}px"></div>
+                <span class="label">{{ instance.name }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
